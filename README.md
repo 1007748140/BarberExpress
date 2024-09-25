@@ -1,5 +1,5 @@
 ﻿# BarberExpress
- Este proyecto esta compuesto dividido en dos partes: BarberExpressBackend, el cual es la parte del servidor de arranque y barberexpressapp
+ Este proyecto esta dividido en dos partes: BarberExpressBackend, el cual es la parte del servidor de arranque y barberexpressapp
  la cual es la aplicación compuesta por modulos, la cual consume la api o servicios que contiene la parte del backend.
 
 BarberExpress/
