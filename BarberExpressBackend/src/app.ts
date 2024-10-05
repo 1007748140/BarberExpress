@@ -1,22 +1,20 @@
-import express, { Application, Request, Response } from 'express';
-import mongoose from 'mongoose';
-import bodyParser from 'body-parser';
-import cors from 'cors';
+import express from 'express';
+import dotenv from 'dotenv';
+import pool from './config/db';
 
-const app: Application = express();
-const PORT = process.env.PORT || 5000;
+dotenv.config();
 
-app.use(bodyParser.json());
-app.use(cors());
+const app = express();
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Servidor de BarberExpress funcionando');
+// Middleware y rutas
+app.get('/', async (_req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM user');
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error fetching data from database');
+  }
 });
 
-mongoose.connect('mongodb://localhost:27017/barberexpress')
-  .then(() => console.log('Conectado a MongoDB'))
-  .catch(error => console.error('Error al conectar a MongoDB:', error));
-
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
-});
+export default app;
