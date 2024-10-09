@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 app.use(bodyParser.json());
 app.use(cors());
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_req: Request, res: Response) => {
   res.send('Servidor de BarberExpress funcionando');
 });
 
