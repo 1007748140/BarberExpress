@@ -1,22 +1,29 @@
-import express, { Application, Request, Response } from 'express';
-import mongoose from 'mongoose';
-import bodyParser from 'body-parser';
+// src/app.ts
+import express from 'express';
 import cors from 'cors';
+import { AppDataSource } from './config/database';
+import userRoutes from './modules/users/routes/user.routes';
+import authRoutes from './modules/auth/routes/auth.routes';
 
-const app: Application = express();
-const PORT = process.env.PORT || 5000;
+const app = express();
 
-app.use(bodyParser.json());
 app.use(cors());
+app.use(express.json());
 
-app.get('/', (_req: Request, res: Response) => {
-  res.send('Servidor de BarberExpress funcionando');
-});
+// Rutas
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 
-mongoose.connect('mongodb://localhost:27017/barberexpress')
-  .then(() => console.log('Conectado a MongoDB'))
-  .catch(error => console.error('Error al conectar a MongoDB:', error));
+// Inicializar conexión a la base de datos
+AppDataSource.initialize()
+    .then(() => {
+        console.log("Base de datos conectada exitosamente");
+    })
+    .catch((error) => console.log(error));
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
+
+export default app;
