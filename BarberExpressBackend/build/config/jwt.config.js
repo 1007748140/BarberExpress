@@ -7,7 +7,10 @@ exports.verifyToken = exports.generateToken = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 dotenv_1.default.config();
-const JWT_SECRET = process.env.JWT_SECRET || 'tu_clave_secreta_por_defecto';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is not defined in the environment variables.');
+}
 const JWT_EXPIRES_IN = '24h';
 const generateToken = (userId, email) => {
     return jsonwebtoken_1.default.sign({

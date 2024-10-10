@@ -9,11 +9,11 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 exports.AppDataSource = new typeorm_1.DataSource({
     type: "mysql",
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT) || 3306,
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME || 'BarberExpress',
+    database: process.env.DB_NAME,
     synchronize: false,
     logging: true,
     entities: ["src/modules/**/entities/*.entity.ts"],

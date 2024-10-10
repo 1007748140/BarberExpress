@@ -36,7 +36,7 @@ class UserService {
                     where: { email: createUserDto.email }
                 });
                 if (existingUser) {
-                    throw new Error('Email already exists');
+                    throw new Error('Este Email ya esta registrado');
                 }
                 const hashedPassword = yield bcrypt_1.default.hash(createUserDto.password, SALT_ROUNDS);
                 const people = this.peopleRepository.create({
@@ -66,8 +66,8 @@ class UserService {
             }
             catch (error) {
                 yield queryRunner.rollbackTransaction();
-                if (error.message === 'Email already exists') {
-                    throw new Error('A user with this email already exists.');
+                if (error.message === 'Este Email ya esta registrado') {
+                    throw new Error('Intenta acceder a tu cuenta, ya estas registrado.');
                 }
                 throw new Error(`Error creating user: ${error.message}`);
             }

@@ -28,7 +28,7 @@ export class UserService {
             });
 
             if (existingUser) {
-                throw new Error('Email already exists');
+                throw new Error('Este Email ya esta registrado');
             }
 
             // Hashear la contraseña antes de guardarla
@@ -69,8 +69,8 @@ export class UserService {
         } catch (error: any) {
             await queryRunner.rollbackTransaction();
 
-            if (error.message === 'Email already exists') {
-                throw new Error('A user with this email already exists.');
+            if (error.message === 'Este Email ya esta registrado') {
+                throw new Error('Intenta acceder a tu cuenta, ya estas registrado.');
             }
 
             throw new Error(`Error creating user: ${error.message}`);

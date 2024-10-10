@@ -16,9 +16,9 @@ BarberExpress/
 │   │   │   └── database.ts
 │   │   ├── modules/            # Carpeta de modulos
 │   │   │   ├── auth/
-│   │   │   │   ├── controllers/    # falta
-│   │   │   │   ├── services/       # falta
-│   │   │   │   └── routes/
+│   │   │   │   ├── controllers/
+│   │   │   │   ├── services/
+│   │   │   │   └── rout
 │   │   │   ├── users/
 │   │   │   │   ├── controllers/
 │   │   │   │   ├── services/
@@ -49,9 +49,30 @@ BarberExpress/
 │   └── tsconfig.json
 │
 └── BarberExpressApp/      # Carpeta para la aplicación móvil (Flutter)
-    ├── lib/
-    ├── pubspec.yaml
-    └──...
+    lib/
+    ├── core/
+    │   ├── api/
+    │   │   └── api_client.dart    # Para manejar las llamadas HTTP
+    │   └── utils/
+    │       └── validators.dart     # Para validaciones de formularios
+    ├── features/
+    │   └── auth/
+    │       ├── data/
+    │       │   ├── models/
+    │       │   │   ├── user_model.dart
+    │       │   │   └── auth_response_model.dart
+    │       │   └── repositories/
+    │       │       └── auth_repository.dart
+    │       ├── presentation/
+    │       │   ├── screens/
+    │       │   │   ├── login_screen.dart
+    │       │   │   └── register_screen.dart
+    │       │   └── widgets/
+    │       │       ├── custom_text_field.dart
+    │       │       └── auth_button.dart
+    │       └── providers/
+    │           └── auth_provider.dart
+    └── main.dart
 
 ```
 

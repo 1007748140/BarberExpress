@@ -1,9 +1,12 @@
 // src/app.ts
+import 'reflect-metadata';
+// resto de tus imports
 import express from 'express';
 import cors from 'cors';
 import { AppDataSource } from './config/database';
 import userRoutes from './modules/users/routes/user.routes';
 import authRoutes from './modules/auth/routes/auth.routes';
+
 
 const app = express();
 
@@ -21,7 +24,7 @@ AppDataSource.initialize()
     })
     .catch((error) => console.log(error));
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

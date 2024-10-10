@@ -1,0 +1,503 @@
+// src/modules/auth/controllers/auth.controller.ts
+import { Request, Response } from 'express';
+import { AuthService } from '../services/auth.service';
+import { LoginDto } from '../dtos/login.dto';
+import { validate } from 'class-validator';
+import { plainToClass } from 'class-transformer';
+
+export class AuthController {
+    private authService: AuthService;
+
+    constructor() {
+        this.authService = new AuthService();
+    }
+
+    login = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const loginDto = plainToClass(LoginDto, req.body);
+            const errors = await validate(loginDto);
+
+            if (errors.length > 0) {
+                res.status(400).json({ errors });
+                return;
+            }
+
+            const result = await this.authService.login(loginDto.email, loginDto.password);
+            res.json(result);
+        } catch (error: any) {
+            res.status(401).json({ message: error.message });
+        }
+    };
+}
+
+-----------------------------------------
+
+// src/modules/auth/dtos/login.dto.ts
+import { IsEmail, IsString, IsNotEmpty } from 'class-validator';
+
+export class LoginDto {
+    @IsEmail()
+    @IsNotEmpty()
+    email!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    password!: string;
+}
+
+---------------------------------------
+
+// src/modules/auth/routes/auth.routes.ts
+import { Router } from 'express';
+import { AuthController } from '../controllers/auth.controller';
+
+const router = Router();
+const authController = new AuthController();
+
+router.post('/login', authController.login);
+
+export default router;
+
+----------------------------------------
+
+// src/modules/auth/services/auth.service.ts
+import bcrypt from 'bcrypt';
+import { AppDataSource } from '../../../config/database';
+import { PeopleInfo } from '../../users/entities/people-info.entity';
+import { generateToken } from '../../../config/jwt.config';
+
+export class AuthService {
+    private peopleInfoRepository = AppDataSource.getRepository(PeopleInfo);
+
+    async login(email: string, password: string) {
+        const userInfo = await this.peopleInfoRepository.findOne({
+            where: { email },
+            relations: ['people']
+        });
+
+        if (!userInfo) {
+            throw new Error('User not found');
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, userInfo.password);
+
+        if (!isPasswordValid) {
+            throw new Error('Invalid password');
+        }
+
+        const token = generateToken(userInfo.people.id, userInfo.email);
+
+        return {
+            token,
+            user: {
+                id: userInfo.people.id,
+                email: userInfo.email,
+                firstName: userInfo.people.first_name,
+                lastName: userInfo.people.last_name
+            }
+        };
+    }
+}
+
+----------------------------------------
+
+// src/modules/users/controllers/user.controller.ts
+import { Request, Response } from 'express';
+import { UserService } from '../services/user.service';
+import { CreateUserDto } from '../dtos/create-user.dto';
+import { UpdateUserDto } from '../dtos/update-user.dto';
+import { validate } from 'class-validator';
+import { plainToClass } from 'class-transformer';
+
+export class UserController {
+    private userService: UserService;
+
+    constructor() {
+        this.userService = new UserService();
+    }
+
+    create = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const createUserDto = plainToClass(CreateUserDto, req.body);
+            const errors = await validate(createUserDto);
+
+            if (errors.length > 0) {
+                res.status(400).json({ errors });
+                return;
+            }
+
+            const user = await this.userService.create(createUserDto);
+            res.status(201).json(user);
+        } catch (error: any) {
+            res.status(500).json({ message: error.message });
+        }
+    };
+
+    findOne = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const id = parseInt(req.params.id);
+            const user = await this.userService.findOne(id);
+
+            if (!user) {
+                res.status(404).json({ message: 'User not found' });
+                return;
+            }
+
+            res.json(user);
+        } catch (error: any) {
+            res.status(500).json({ message: error.message });
+        }
+    };
+
+    update = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const id = parseInt(req.params.id);
+            const updateUserDto = plainToClass(UpdateUserDto, req.body);
+            const errors = await validate(updateUserDto);
+
+            if (errors.length > 0) {
+                res.status(400).json({ errors });
+                return;
+            }
+
+            const user = await this.userService.update(id, updateUserDto);
+            res.json(user);
+        } catch (error: any) {
+            res.status(500).json({ message: error.message });
+        }
+    };
+}
+
+--------------------------------------
+
+// src/modules/users/dtos/create-user.dto.ts
+import { IsString, IsEmail, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+
+export class CreateUserDto {
+    @IsString()
+    @IsNotEmpty()
+    first_name!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    last_name!: string;
+
+    @IsEmail()
+    @IsNotEmpty()
+    email!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    password!: string;
+
+    @IsString()
+    @IsOptional()
+    phone?: string;
+
+    @IsNumber()
+    @IsNotEmpty()
+    country_id!: number;
+
+    @IsNumber()
+    @IsNotEmpty()
+    state_id!: number;
+
+    @IsNumber()
+    @IsNotEmpty()
+    latitude!: number;
+
+    @IsNumber()
+    @IsNotEmpty()
+    longitude!: number;
+}
+
+----------------------------------
+
+// src/modules/users/dtos/update-user.dto.ts
+import { IsString, IsOptional, IsNumber } from 'class-validator';
+
+export class UpdateUserDto {
+    @IsString()
+    @IsOptional()
+    first_name?: string;
+
+    @IsString()
+    @IsOptional()
+    last_name?: string;
+
+    @IsString()
+    @IsOptional()
+    phone?: string;
+
+    @IsString()
+    @IsOptional()
+    profile_image?: string;
+
+    @IsNumber()
+    @IsOptional()
+    country_id?: number;
+
+    @IsNumber()
+    @IsOptional()
+    state_id?: number;
+
+    @IsNumber()
+    @IsOptional()
+    latitude?: number;
+
+    @IsNumber()
+    @IsOptional()
+    longitude?: number;
+}
+
+--------------------------
+
+// src/modules/users/entities/people-info.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import { People } from './people.entity';
+
+@Entity('people_info')
+export class PeopleInfo {
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @OneToOne(() => People)
+    @JoinColumn({ name: 'people_id' })
+    people!: People;
+
+    @Column({ unique: true })
+    email!: string;
+
+    @Column()
+    password!: string;
+
+    @Column({ nullable: true })
+    phone!: string;
+
+    @Column({ nullable: true })
+    profile_image!: string;
+
+    @Column()
+    role_id!: number;
+
+    @Column()
+    location_id!: number;
+
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    created_at!: Date;
+}
+
+------------------------------
+// people-location.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import { People } from './people.entity';
+
+@Entity('people_location')
+export class PeopleLocation {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @OneToOne(() => People)
+  @JoinColumn({ name: 'people_id' })
+  people!: People;
+
+  @Column()
+  country_id!: number;
+
+  @Column()
+  state_id!: number;
+
+  @Column('decimal', { precision: 10, scale: 7 })
+  latitude!: number;
+
+  @Column('decimal', { precision: 10, scale: 7 })
+  longitude!: number;
+}
+
+-------------------------------------
+// src/modules/users/entities/people.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
+import { PeopleInfo } from './people-info.entity';
+import { PeopleLocation } from './people-location.entity';
+
+@Entity('people')
+export class People {
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column()
+    first_name!: string;
+
+    @Column()
+    last_name!: string;
+
+    @OneToOne(() => PeopleInfo, info => info.people)
+    info!: PeopleInfo;
+
+    @OneToOne(() => PeopleLocation, location => location.people)
+    location!: PeopleLocation;
+}
+
+-----------------------------------
+// src/modules/users/entities/role.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+@Entity('role')
+export class Role {
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column()
+    name!: string;
+}
+
+--------------------------------
+// src/modules/users/routes/user.routes.ts
+import { Router } from 'express';
+import { UserController } from '../controllers/user.controller';
+import { authMiddleware } from '../../../middlewares/auth.middleware';
+
+const router = Router();
+const userController = new UserController();
+
+router.post('/', userController.create);
+router.get('/:id', authMiddleware, userController.findOne);
+router.put('/:id', authMiddleware, userController.update);
+
+export default router;
+
+---------------------------------
+// src/modules/users/services/user.service.ts
+import { AppDataSource } from '../../../config/database';
+import { People } from '../entities/people.entity';
+import { PeopleInfo } from '../entities/people-info.entity';
+import { PeopleLocation } from '../entities/people-location.entity';
+import { CreateUserDto } from '../dtos/create-user.dto';
+import { UpdateUserDto } from '../dtos/update-user.dto';
+import bcrypt from 'bcrypt';
+
+// Definir constantes
+const SALT_ROUNDS = 10;
+const DEFAULT_ROLE_ID = 1;
+
+export class UserService {
+    private peopleRepository = AppDataSource.getRepository(People);
+    private peopleInfoRepository = AppDataSource.getRepository(PeopleInfo);
+    private peopleLocationRepository = AppDataSource.getRepository(PeopleLocation);
+
+    async create(createUserDto: CreateUserDto) {
+        const queryRunner = AppDataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // Verificar si el email ya existe
+            const existingUser = await this.peopleInfoRepository.findOne({
+                where: { email: createUserDto.email }
+            });
+
+            if (existingUser) {
+                throw new Error('Email already exists');
+            }
+
+            // Hashear la contraseña antes de guardarla
+            const hashedPassword = await bcrypt.hash(createUserDto.password, SALT_ROUNDS);
+
+            // Crear persona
+            const people = this.peopleRepository.create({
+                first_name: createUserDto.first_name,
+                last_name: createUserDto.last_name,
+            });
+            await queryRunner.manager.save(people);
+
+            // Crear ubicación
+            const location = this.peopleLocationRepository.create({
+                people,
+                country_id: createUserDto.country_id,
+                state_id: createUserDto.state_id,
+                latitude: createUserDto.latitude,
+                longitude: createUserDto.longitude,
+            });
+            await queryRunner.manager.save(location);
+
+            // Crear info del usuario con la contraseña hasheada
+            const info = this.peopleInfoRepository.create({
+                people,
+                email: createUserDto.email,
+                password: hashedPassword, // Usar la contraseña hasheada
+                phone: createUserDto.phone,
+                role_id: DEFAULT_ROLE_ID, // Usar constante para el rol
+                location_id: location.id,
+            });
+            await queryRunner.manager.save(info);
+
+            // Confirmar la transacción
+            await queryRunner.commitTransaction();
+
+            return this.findOne(people.id);
+        } catch (error: any) {
+            await queryRunner.rollbackTransaction();
+
+            if (error.message === 'Email already exists') {
+                throw new Error('A user with this email already exists.');
+            }
+
+            throw new Error(`Error creating user: ${error.message}`);
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    async findOne(id: number) {
+        return this.peopleRepository.findOne({
+            where: { id },
+            relations: ['info', 'location'],
+        });
+    }
+
+    async update(id: number, updateUserDto: UpdateUserDto) {
+        const queryRunner = AppDataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const user = await this.findOne(id);
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            // Actualizar datos básicos
+            if (updateUserDto.first_name) user.first_name = updateUserDto.first_name;
+            if (updateUserDto.last_name) user.last_name = updateUserDto.last_name;
+            await queryRunner.manager.save(user);
+
+            // Actualizar ubicación
+            if (updateUserDto.country_id || updateUserDto.state_id || 
+                updateUserDto.latitude || updateUserDto.longitude) {
+                const location = user.location;
+                if (updateUserDto.country_id) location.country_id = updateUserDto.country_id;
+                if (updateUserDto.state_id) location.state_id = updateUserDto.state_id;
+                if (updateUserDto.latitude) location.latitude = updateUserDto.latitude;
+                if (updateUserDto.longitude) location.longitude = updateUserDto.longitude;
+                await queryRunner.manager.save(location);
+            }
+
+            // Actualizar info
+            if (updateUserDto.phone || updateUserDto.profile_image) {
+                const info = user.info;
+                if (updateUserDto.phone) info.phone = updateUserDto.phone;
+                if (updateUserDto.profile_image) info.profile_image = updateUserDto.profile_image;
+                await queryRunner.manager.save(info);
+            }
+
+            await queryRunner.commitTransaction();
+
+            return this.findOne(id);
+        } catch (error: any) {
+            await queryRunner.rollbackTransaction();
+            throw new Error(`Error updating user: ${error.message}`);
+        } finally {
+            await queryRunner.release();
+        }
+    }
+}
