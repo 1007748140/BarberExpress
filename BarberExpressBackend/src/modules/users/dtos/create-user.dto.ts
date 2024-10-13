@@ -1,40 +1,13 @@
 // src/modules/users/dtos/create-user.dto.ts
-import { IsString, IsEmail, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
-
-export class CreateUserDto {
-    @IsString()
-    @IsNotEmpty()
-    first_name!: string;
-
-    @IsString()
-    @IsNotEmpty()
-    last_name!: string;
-
-    @IsEmail()
-    @IsNotEmpty()
-    email!: string;
-
-    @IsString()
-    @IsNotEmpty()
-    password!: string;
-
-    @IsString()
-    @IsOptional()
+export interface CreateUserDto {
+    first_name: string;
+    last_name: string;
+    email: string;
+    password: string;
     phone?: string;
-
-    @IsNumber()
-    @IsNotEmpty()
-    country_id!: number;
-
-    @IsNumber()
-    @IsNotEmpty()
-    state_id!: number;
-
-    @IsNumber()
-    @IsNotEmpty()
-    latitude!: number;
-
-    @IsNumber()
-    @IsNotEmpty()
-    longitude!: number;
+    country_id: number;
+    state_id: number;
+    role_id: number;
+    latitude: number;
+    longitude: number;
 }

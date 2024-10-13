@@ -14,17 +14,34 @@ BarberExpress/
 │   ├── src/
 │   │   ├── config/
 │   │   │   └── database.ts
-│   │   ├── modules/            # Carpeta de modulos
-│   │   │   ├── auth/
+│   │   ├── modules/                # Carpeta de modulos
+│   │   │   ├── auth/               #falta adaptaciones
 │   │   │   │   ├── controllers/
+│   │   │   │   ├── dtos/
 │   │   │   │   ├── services/
-│   │   │   │   └── rout
+│   │   │   │   └── routes/
+│   │   │   ├── countries/
+│   │   │   │   ├── controllers/
+│   │   │   │   ├── entities/
+│   │   │   │   ├── services/
+│   │   │   │   └── routes/
+│   │   │   ├── roles/
+│   │   │   │   ├── controllers/
+│   │   │   │   ├── entities/
+│   │   │   │   ├── services/
+│   │   │   │   └── routes/
+│   │   │   ├── states/
+│   │   │   │   ├── controllers/
+│   │   │   │   ├── entities/
+│   │   │   │   ├── services/
+│   │   │   │   └── routes/
 │   │   │   ├── users/
 │   │   │   │   ├── controllers/
+│   │   │   │   ├── dtos/
 │   │   │   │   ├── services/
 │   │   │   │   ├── routes/
 │   │   │   │   └── entities/
-│   │   │   ├── appointments/       # falta
+│   │   │   ├── appointments/       # (relacionada con citas)falta
 │   │   │   │   ├── controllers/    # falta
 │   │   │   │   ├── services/       # falta
 │   │   │   │   ├── routes/         # falta

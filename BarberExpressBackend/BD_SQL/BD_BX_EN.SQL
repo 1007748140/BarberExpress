@@ -18,20 +18,58 @@ INSERT INTO `role` (id, name) VALUES
 (1, 'customer'),
 (2, 'barber');
 
+-- Crear tabla para los países
 CREATE TABLE country (
   id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
   name VARCHAR(255) NOT NULL
 );
 
--- Insertion of default data for the country table
+-- Inserción del país Colombia
 INSERT INTO country (name) VALUES ('Colombia');
 
+-- Crear tabla para los departamentos (estados)
 CREATE TABLE `state` (
   id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
-  `name` VARCHAR(100) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
   country_id INT(20) NOT NULL,
   FOREIGN KEY (country_id) REFERENCES country(id) ON DELETE CASCADE
 );
+
+-- Insertar los departamentos de Colombia
+INSERT INTO state (name, country_id) VALUES
+('Amazonas', 1),
+('Antioquia', 1),
+('Arauca', 1),
+('Atlántico', 1),
+('Bolívar', 1),
+('Boyacá', 1),
+('Caldas', 1),
+('Caquetá', 1),
+('Casanare', 1),
+('Cauca', 1),
+('Cesar', 1),
+('Chocó', 1),
+('Córdoba', 1),
+('Cundinamarca', 1),
+('Guainía', 1),
+('Guaviare', 1),
+('Huila', 1),
+('La Guajira', 1),
+('Magdalena', 1),
+('Meta', 1),
+('Nariño', 1),
+('Norte de Santander', 1),
+('Putumayo', 1),
+('Quindío', 1),
+('Risaralda', 1),
+('San Andrés y Providencia', 1),
+('Santander', 1),
+('Sucre', 1),
+('Tolima', 1),
+('Valle del Cauca', 1),
+('Vaupés', 1),
+('Vichada', 1);
+
 
 CREATE TABLE people_location (
   id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
