@@ -6,7 +6,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/api/auth'),
+      Uri.parse('$baseUrl/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
@@ -14,7 +14,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Failed to login');
+      throw Exception('Failed to login: ${response.statusCode} - ${response.body}');
     }
   }
 

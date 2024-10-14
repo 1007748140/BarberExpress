@@ -16,7 +16,7 @@ const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.use('/users', user_routes_1.default);
-app.use('/api/auth', auth_routes_1.default);
+app.use('/', auth_routes_1.default);
 app.use('/countries', country_routes_1.default);
 app.use('/roles', role_routes_1.default);
 app.use('/states', state_routes_1.default);

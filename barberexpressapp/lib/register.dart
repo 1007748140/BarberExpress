@@ -86,88 +86,111 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Register')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: EdgeInsets.all(16.0),
-          children: [
-            TextFormField(
-              decoration: InputDecoration(labelText: 'First Name'),
-              validator: (value) => value!.isEmpty ? 'Please enter your first name' : null,
-              onSaved: (value) => _userData['first_name'] = value,
-            ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Last Name'),
-              validator: (value) => value!.isEmpty ? 'Please enter your last name' : null,
-              onSaved: (value) => _userData['last_name'] = value,
-            ),
-            DropdownButtonFormField<int>(
-              decoration: InputDecoration(labelText: 'Country'),
-              value: _selectedCountryId,
-              items: _countries.map((country) => DropdownMenuItem<int>(
-                value: country['id'] as int,
-                child: Text(country['name'] as String),
-              )).toList(),
-              onChanged: _onCountryChanged,
-              validator: (value) => value == null ? 'Please select a country' : null,
-            ),
-            DropdownButtonFormField<int>(
-              decoration: InputDecoration(labelText: 'State'),
-              value: _selectedStateId,
-              items: _states.map((state) => DropdownMenuItem<int>(
-                value: state['id'] as int,
-                child: Text(state['name'] as String),
-              )).toList(),
-              onChanged: (value) {
+      appBar: AppBar(
+        title: Text('Registro', style: TextStyle(color: Colors.white)),
+        backgroundColor: Color(0xFF1E2A3B),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1E2A3B), Color(0xFF8B4513)],
+          ),
+        ),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: EdgeInsets.all(16.0),
+            children: [
+              _buildInputField('Nombre', (value) => _userData['first_name'] = value),
+              _buildInputField('Apellido', (value) => _userData['last_name'] = value),
+              _buildDropdown('País', _countries, _selectedCountryId, _onCountryChanged),
+              _buildDropdown('Estado', _states, _selectedStateId, (value) {
                 setState(() {
                   _selectedStateId = value;
                   _userData['state_id'] = value;
                 });
-              },
-              validator: (value) => value == null ? 'Please select a state' : null,
-            ),
-            DropdownButtonFormField<int>(
-              decoration: InputDecoration(labelText: 'Role'),
-              value: _selectedRoleId,
-              items: _roles.map((role) => DropdownMenuItem<int>(
-                value: role['id'] as int,
-                child: Text(role['name'] as String),
-              )).toList(),
-              onChanged: (value) {
+              }),
+              _buildDropdown('Rol', _roles, _selectedRoleId, (value) {
                 setState(() {
                   _selectedRoleId = value;
                   _userData['role_id'] = value;
                 });
-              },
-              validator: (value) => value == null ? 'Please select a role' : null,
-            ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Email'),
-              validator: (value) => value!.isEmpty ? 'Please enter your email' : null,
-              onSaved: (value) => _userData['email'] = value,
-            ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
-              validator: (value) => value!.isEmpty ? 'Please enter a password' : null,
-              onSaved: (value) => _userData['password'] = value,
-            ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Phone'),
-              validator: (value) => value!.isEmpty ? 'Please enter your phone number' : null,
-              onSaved: (value) => _userData['phone'] = value,
-            ),
-            ElevatedButton(
-              onPressed: _getCurrentLocation,
-              child: Text('Get Current Location'),
-            ),
-            ElevatedButton(
-              onPressed: _register,
-              child: Text('Register'),
-            ),
-          ],
+              }),
+              _buildInputField('Email', (value) => _userData['email'] = value),
+              _buildInputField('Contraseña', (value) => _userData['password'] = value, isPassword: true),
+              _buildInputField('Teléfono', (value) => _userData['phone'] = value),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _getCurrentLocation,
+                child: Text('Obtener Ubicación Actual'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color.fromARGB(255, 4, 95, 75),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _register,
+                child: Text('Registrarse'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color.fromARGB(255, 12, 139, 0),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInputField(String label, Function(String) onSaved, {bool isPassword = false}) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: TextFormField(
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.white70),
+          filled: true,
+          fillColor: Colors.white.withOpacity(0.1),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        style: TextStyle(color: Colors.white),
+        obscureText: isPassword,
+        validator: (value) => value!.isEmpty ? 'Por favor, completa este campo' : null,
+        onSaved: (value) => onSaved(value!),
+      ),
+    );
+  }
+
+  Widget _buildDropdown(String label, List<Map<String, dynamic>> items, int? selectedValue, Function(int?) onChanged) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: DropdownButtonFormField<int>(
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.white70),
+          filled: true,
+          fillColor: Colors.white.withOpacity(0.1),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        dropdownColor: Color(0xFF1E2A3B),
+        style: TextStyle(color: Colors.white),
+        value: selectedValue,
+        items: items.map((item) => DropdownMenuItem<int>(
+          value: item['id'] as int,
+          child: Text(item['name'] as String),
+        )).toList(),
+        onChanged: onChanged,
+        validator: (value) => value == null ? 'Por favor, selecciona una opción' : null,
       ),
     );
   }

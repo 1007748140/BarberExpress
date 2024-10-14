@@ -18,7 +18,7 @@ app.use(express.json());
 
 // Rutas
 app.use('/users', userRoutes);
-app.use('/api/auth', authRoutes);
+app.use('/', authRoutes);
 app.use('/countries', countryRoutes);
 app.use('/roles', roleRoutes);
 app.use('/states', stateRoutes);

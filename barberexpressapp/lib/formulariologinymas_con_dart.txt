@@ -1,0 +1,122 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class ApiService {
+  static const String baseUrl = 'http://localhost:3000';
+
+  static Future<Map<String, dynamic>> login(String email, String password) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/auth'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to login');
+    }
+  }
+
+  static Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/users'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(userData),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to register');
+    }
+  }
+
+  static Future<List<dynamic>> getCountries() async {
+    final response = await http.get(Uri.parse('$baseUrl/countries'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load countries');
+    }
+  }
+
+  static Future<List<dynamic>> getStates(int countryId) async {
+    final response = await http.get(Uri.parse('$baseUrl/states?countryId=$countryId'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load states');
+    }
+  }
+
+  static Future<List<dynamic>> getRoles() async {
+    final response = await http.get(Uri.parse('$baseUrl/roles'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load roles');
+    }
+  }
+}
+
+-----------------------------------------
+import 'package:flutter/material.dart';
+import 'api_service.dart';
+
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
+  String _email = '';
+  String _password = '';
+
+  void _login() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      try {
+        final result = await ApiService.login(_email, _password);
+        // Handle successful login
+        print(result);
+      } catch (e) {
+        // Handle login error
+        print(e);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Login')),
+      body: Form(
+        key: _formKey,
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Email'),
+                validator: (value) => value!.isEmpty ? 'Please enter your email' : null,
+                onSaved: (value) => _email = value!,
+              ),
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
+                validator: (value) => value!.isEmpty ? 'Please enter your password' : null,
+                onSaved: (value) => _password = value!,
+              ),
+              ElevatedButton(
+                onPressed: _login,
+                child: Text('Login'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
