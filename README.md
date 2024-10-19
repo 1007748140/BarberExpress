@@ -67,28 +67,10 @@ BarberExpress/
 │
 └── BarberExpressApp/      # Carpeta para la aplicación móvil (Flutter)
     lib/
-    ├── core/
-    │   ├── api/
-    │   │   └── api_client.dart    # Para manejar las llamadas HTTP
-    │   └── utils/
-    │       └── validators.dart     # Para validaciones de formularios
-    ├── features/
-    │   └── auth/
-    │       ├── data/
-    │       │   ├── models/
-    │       │   │   ├── user_model.dart
-    │       │   │   └── auth_response_model.dart
-    │       │   └── repositories/
-    │       │       └── auth_repository.dart
-    │       ├── presentation/
-    │       │   ├── screens/
-    │       │   │   ├── login_screen.dart
-    │       │   │   └── register_screen.dart
-    │       │   └── widgets/
-    │       │       ├── custom_text_field.dart
-    │       │       └── auth_button.dart
-    │       └── providers/
-    │           └── auth_provider.dart
+    ├── api_service.dart
+    ├── home.dart
+    ├── login.dart
+    ├── register.dart
     └── main.dart
 
 ```

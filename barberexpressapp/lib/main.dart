@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'register.dart';
+import 'appointments.dart';
+import 'services.dart';
 
 void main() {
   runApp(MyApp());
@@ -16,6 +18,13 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: HomePage(),
+      routes: {
+        '/login': (context) => LoginPage(),
+        '/register': (context) => RegisterPage(),
+        '/home': (context) => HomePage(),  // Removido el parámetro userData
+        '/appointments': (context) => AppointmentsPage(),
+        '/services': (context) => ServicesPage(),
+      },
     );
   }
 }
