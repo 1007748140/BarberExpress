@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BarberExpress',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -104,8 +105,7 @@ class HomePage extends StatelessWidget {
                   ),
                   child: Text(
                     'Registrarse',
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: TextStyle(fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.orangeAccent.shade700,
                     ),
