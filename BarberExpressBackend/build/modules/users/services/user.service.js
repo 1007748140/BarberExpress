@@ -14,15 +14,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const database_1 = require("../../../config/database");
-const people_entity_1 = require("../entities/people.entity");
-const people_info_entity_1 = require("../entities/people-info.entity");
-const people_location_entity_1 = require("../entities/people-location.entity");
+const user_entity_1 = require("../entities/user.entity");
+const user_location_entity_1 = require("../entities/user-location.entity");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 class UserService {
     constructor() {
-        this.peopleRepository = database_1.AppDataSource.getRepository(people_entity_1.People);
-        this.peopleInfoRepository = database_1.AppDataSource.getRepository(people_info_entity_1.PeopleInfo);
-        this.peopleLocationRepository = database_1.AppDataSource.getRepository(people_location_entity_1.PeopleLocation);
+        this.userRepository = database_1.AppDataSource.getRepository(user_entity_1.User);
+        this.userLocationRepository = database_1.AppDataSource.getRepository(user_location_entity_1.UserLocation);
     }
     createUser(userData) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -30,37 +28,32 @@ class UserService {
             yield queryRunner.connect();
             yield queryRunner.startTransaction();
             try {
-                const existingUser = yield this.peopleInfoRepository.findOne({
+                const existingUser = yield this.userRepository.findOne({
                     where: { email: userData.email }
                 });
                 if (existingUser) {
                     throw new Error('Email already exists');
                 }
                 const hashedPassword = yield bcrypt_1.default.hash(userData.password, 10);
-                const people = this.peopleRepository.create({
+                const user = this.userRepository.create({
                     first_name: userData.first_name,
                     last_name: userData.last_name,
+                    email: userData.email,
+                    password: hashedPassword,
+                    phone: userData.phone,
+                    role: { id: userData.id_role }
                 });
-                yield queryRunner.manager.save(people);
-                const location = this.peopleLocationRepository.create({
-                    people: people,
-                    country_id: userData.country_id,
-                    state_id: userData.state_id,
+                yield queryRunner.manager.save(user);
+                const location = this.userLocationRepository.create({
+                    user: user,
+                    country: { id: userData.id_country },
+                    department: { id: userData.id_department },
                     latitude: userData.latitude,
                     longitude: userData.longitude,
                 });
                 yield queryRunner.manager.save(location);
-                const info = this.peopleInfoRepository.create({
-                    people: people,
-                    email: userData.email,
-                    password: hashedPassword,
-                    phone: userData.phone,
-                    role_id: userData.role_id,
-                    location_id: location.id,
-                });
-                yield queryRunner.manager.save(info);
                 yield queryRunner.commitTransaction();
-                return { id: people.id, email: info.email };
+                return { id: user.id, email: user.email };
             }
             catch (error) {
                 yield queryRunner.rollbackTransaction();

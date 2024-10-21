@@ -1,6 +1,5 @@
-// src/modules/states/entities/state.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Country } from '../../countries/entities/country.entity';
+import { Country } from './country.entity';
 
 @Entity('departments')
 export class Department {

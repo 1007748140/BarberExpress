@@ -9,24 +9,26 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.State = void 0;
+exports.Department = void 0;
 const typeorm_1 = require("typeorm");
-let State = class State {
+const country_entity_1 = require("../../countries/entities/country.entity");
+let Department = class Department {
 };
-exports.State = State;
+exports.Department = Department;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], State.prototype, "id", void 0);
+], Department.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], State.prototype, "name", void 0);
+], Department.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], State.prototype, "country_id", void 0);
-exports.State = State = __decorate([
-    (0, typeorm_1.Entity)('state')
-], State);
+    (0, typeorm_1.ManyToOne)(() => country_entity_1.Country),
+    (0, typeorm_1.JoinColumn)({ name: 'id_country' }),
+    __metadata("design:type", country_entity_1.Country)
+], Department.prototype, "country", void 0);
+exports.Department = Department = __decorate([
+    (0, typeorm_1.Entity)('departments')
+], Department);
 //# sourceMappingURL=state.entity.js.map

@@ -41,7 +41,7 @@ class ApiService {
     }
   }
 
-  static Future<List<dynamic>> getStates(int countryId) async {
+  static Future<List<dynamic>> getDepartments(int countryId) async {
     final response = await http.get(Uri.parse('$baseUrl/states?countryId=$countryId'));
     if (response.statusCode == 200) {
       return jsonDecode(response.body);

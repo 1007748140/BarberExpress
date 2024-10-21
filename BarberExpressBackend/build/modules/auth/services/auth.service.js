@@ -15,33 +15,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const database_1 = require("../../../config/database");
-const people_info_entity_1 = require("../../users/entities/people-info.entity");
+const user_entity_1 = require("../entities/user.entity");
 const jwt_config_1 = require("../../../config/jwt.config");
 class AuthService {
     constructor() {
-        this.peopleInfoRepository = database_1.AppDataSource.getRepository(people_info_entity_1.PeopleInfo);
+        this.userRepository = database_1.AppDataSource.getRepository(user_entity_1.User);
     }
     login(email, password) {
         return __awaiter(this, void 0, void 0, function* () {
-            const userInfo = yield this.peopleInfoRepository.findOne({
+            const user = yield this.userRepository.findOne({
                 where: { email },
-                relations: ['people']
+                relations: ['role']
             });
-            if (!userInfo) {
+            if (!user) {
                 throw new Error('User not found');
             }
-            const isPasswordValid = yield bcrypt_1.default.compare(password, userInfo.password);
+            const isPasswordValid = yield bcrypt_1.default.compare(password, user.password);
             if (!isPasswordValid) {
                 throw new Error('Invalid password');
             }
-            const token = (0, jwt_config_1.generateToken)(userInfo.people.id, userInfo.email);
+            const token = (0, jwt_config_1.generateToken)(user.id, user.email, user.role.name);
             return {
                 token,
                 user: {
-                    id: userInfo.people.id,
-                    email: userInfo.email,
-                    firstName: userInfo.people.first_name,
-                    lastName: userInfo.people.last_name
+                    id: user.id,
+                    email: user.email,
+                    firstName: user.first_name,
+                    lastName: user.last_name,
+                    role: user.role.name
                 }
             };
         });

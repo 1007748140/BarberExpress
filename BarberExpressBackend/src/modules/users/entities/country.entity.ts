@@ -1,4 +1,3 @@
-// src/modules/countries/entities/country.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('countries')

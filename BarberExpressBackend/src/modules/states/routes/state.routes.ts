@@ -1,10 +1,10 @@
 // src/modules/states/routes/state.routes.ts
 import { Router } from 'express';
-import { StateController } from '../controllers/state.controller';
+import { DepartmentController } from '../controllers/state.controller';
 
 const router = Router();
-const stateController = new StateController();
+const departmentController = new DepartmentController();
 
-router.get('/', stateController.getStatesByCountry);
+router.get('/', departmentController.getDepartmentsByCountry);
 
 export default router;

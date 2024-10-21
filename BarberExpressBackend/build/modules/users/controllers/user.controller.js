@@ -11,11 +11,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const user_service_1 = require("../services/user.service");
+const create_user_dto_1 = require("../dtos/create-user.dto");
+const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 class UserController {
     constructor() {
         this.registerUser = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const userData = req.body;
+                const userData = (0, class_transformer_1.plainToClass)(create_user_dto_1.CreateUserDto, req.body);
+                const errors = yield (0, class_validator_1.validate)(userData);
+                if (errors.length > 0) {
+                    res.status(400).json({ errors });
+                    return;
+                }
                 const newUser = yield this.userService.createUser(userData);
                 res.status(201).json(newUser);
             }

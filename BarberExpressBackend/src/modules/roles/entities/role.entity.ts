@@ -1,7 +1,7 @@
 // src/modules/roles/entities/role.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('role')
+@Entity('roles')
 export class Role {
     @PrimaryGeneratedColumn()
     id!: number;

@@ -11,10 +11,10 @@ class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, dynamic> _userData = {};
   List<Map<String, dynamic>> _countries = [];
-  List<Map<String, dynamic>> _states = [];
+  List<Map<String, dynamic>> _departments = [];
   List<Map<String, dynamic>> _roles = [];
   int? _selectedCountryId;
-  int? _selectedStateId;
+  int? _selectedDepartmentId;
   int? _selectedRoleId;
 
   @override
@@ -40,16 +40,16 @@ class _RegisterPageState extends State<RegisterPage> {
   void _onCountryChanged(int? countryId) async {
     if (countryId != null) {
       try {
-        final states = await ApiService.getStates(countryId);
+        final departments = await ApiService.getDepartments(countryId);
         setState(() {
           _selectedCountryId = countryId;
-          _states = List<Map<String, dynamic>>.from(states);
-          _selectedStateId = null;
-          _userData['country_id'] = countryId;
-          _userData['state_id'] = null;
+          _departments = List<Map<String, dynamic>>.from(departments);
+          _selectedDepartmentId = null;
+          _userData['id_country'] = countryId;
+          _userData['id_department'] = null;
         });
       } catch (e) {
-        print('Error loading states: $e');
+        print('Error loading departments: $e');
         // Mostrar un mensaje de error al usuario
       }
     }
@@ -106,16 +106,16 @@ class _RegisterPageState extends State<RegisterPage> {
               _buildInputField('Nombre', (value) => _userData['first_name'] = value),
               _buildInputField('Apellido', (value) => _userData['last_name'] = value),
               _buildDropdown('País', _countries, _selectedCountryId, _onCountryChanged),
-              _buildDropdown('Estado', _states, _selectedStateId, (value) {
+              _buildDropdown('Departamento', _departments, _selectedDepartmentId, (value) {
                 setState(() {
-                  _selectedStateId = value;
-                  _userData['state_id'] = value;
+                  _selectedDepartmentId = value;
+                  _userData['id_department'] = value;
                 });
               }),
               _buildDropdown('Rol', _roles, _selectedRoleId, (value) {
                 setState(() {
                   _selectedRoleId = value;
-                  _userData['role_id'] = value;
+                  _userData['id_role'] = value;
                 });
               }),
               _buildInputField('Email', (value) => _userData['email'] = value),

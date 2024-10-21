@@ -1,37 +1,38 @@
 // src/modules/auth/services/auth.service.ts
 import bcrypt from 'bcrypt';
 import { AppDataSource } from '../../../config/database';
-import { PeopleInfo } from '../../users/entities/people-info.entity';
+import { User } from '../entities/user.entity';
 import { generateToken } from '../../../config/jwt.config';
 
 export class AuthService {
-    private peopleInfoRepository = AppDataSource.getRepository(PeopleInfo);
+    private userRepository = AppDataSource.getRepository(User);
 
     async login(email: string, password: string) {
-        const userInfo = await this.peopleInfoRepository.findOne({
+        const user = await this.userRepository.findOne({
             where: { email },
-            relations: ['people']
+            relations: ['role']
         });
 
-        if (!userInfo) {
+        if (!user) {
             throw new Error('User not found');
         }
 
-        const isPasswordValid = await bcrypt.compare(password, userInfo.password);
+        const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
             throw new Error('Invalid password');
         }
 
-        const token = generateToken(userInfo.people.id, userInfo.email);
+        const token = generateToken(user.id, user.email, user.role.name);
 
         return {
             token,
             user: {
-                id: userInfo.people.id,
-                email: userInfo.email,
-                firstName: userInfo.people.first_name,
-                lastName: userInfo.people.last_name
+                id: user.id,
+                email: user.email,
+                firstName: user.first_name,
+                lastName: user.last_name,
+                role: user.role.name
             }
         };
     }

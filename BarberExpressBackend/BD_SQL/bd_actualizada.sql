@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS BarberExpress2;
-CREATE DATABASE BarberExpress2;
-USE BarberExpress2;
+DROP DATABASE IF EXISTS BarberExpress;
+CREATE DATABASE BarberExpress;
+USE BarberExpress;
 
 CREATE TABLE countries (
   id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE `roles` (
 id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
 `name` varchar(255) NOT NULL
 );
-INSERT INTO `roles` (`name`) VALUES ('customer'), ('barber');
+INSERT INTO `roles` (`name`) VALUES ('Cliente'), ('barber');
 
 CREATE TABLE people (
   id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
@@ -65,16 +65,31 @@ CREATE TABLE barbershops (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE days_week(
+ id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
+ days VARCHAR(100) NOT NULL
+);
+
+INSERT INTO days_week (days) VALUES ('Lunes'), ('Martes'), ('Miercoles'), ('Jueves'), ('Viernes'), ('Sabado'), ('Domingo');
+
+
 CREATE TABLE `schedule` (
   id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
   id_barbershop INT(20) NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
-  `day` VARCHAR(100) NOT NULL,
   shop_status BOOLEAN NOT NULL DEFAULT 1, -- 1 = Open, 0 = Closed
   FOREIGN KEY (id_barbershop) REFERENCES barbershops(id) ON DELETE CASCADE
 );
-INSERT INTO `schedule` (`day`) VALUES ('Lunes'), ('Martes'), ('Miercoles'), ('Jueves'), ('Viernes'), ('Sabado'), ('Domingo');
+
+CREATE TABLE schedule_days (
+  id_schedule INT(20) NOT NULL,
+  id_days_week INT(20) NOT NULL,
+  PRIMARY KEY (id_schedule, id_days_week),
+  FOREIGN KEY (id_schedule) REFERENCES schedule(id) ON DELETE CASCADE,
+  FOREIGN KEY (id_days_week) REFERENCES days_week(id) ON DELETE CASCADE
+);
+
 
 -- Tabla para el estado de los barberos
 CREATE TABLE barber_status (
@@ -82,20 +97,20 @@ CREATE TABLE barber_status (
   `status` VARCHAR(100) NOT NULL
 
 );
-INSERT INTO barber_status (`status`) VALUES ('Disponible'), ('Ocupado'), ('En descanso')
+INSERT INTO barber_status (`status`) VALUES ('Disponible'), ('Ocupado'), ('En descanso');
 
 -- las barbershops contienen a los barbers. Es una relación de uno a muchos. una barbershop puede tener muchos barbers.
 CREATE TABLE barbers (
   id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
   id_barbershop INT(20) NOT NULL,
-  id_barber_state INT(20) NOT NULL,
+  id_status INT(20) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
   `last_name` VARCHAR(100) NOT NULL,
   `email` VARCHAR(100) NOT NULL,
   `phone` VARCHAR(10) NOT NULL,
   profile_picture VARCHAR(255) NOT NULL,
   FOREIGN KEY (id_barbershop) REFERENCES barbershops(id) ON DELETE CASCADE,
-  FOREIGN KEY (id_barber_state) REFERENCES barber_status(id) ON DELETE CASCADE
+  FOREIGN KEY (id_status) REFERENCES barber_status(id) ON DELETE CASCADE
 );
 
 CREATE TABLE services (
@@ -137,6 +152,15 @@ CREATE TABLE payment_status (
 -- Insertamos algunos estados comunes
 INSERT INTO payment_status (`status`) VALUES ('Pendiente'), ('Completado'), ('Fallido'), ('Reembolsado');
 
+CREATE TABLE commission_value_product(
+  id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
+  `value` DECIMAL(10, 2) NOT NULL
+);
+
+CREATE TABLE commission_value_appointment(
+  id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
+  `value` DECIMAL(10, 2) NOT NULL
+);
 -- Tabla para los pagos de los productos
 CREATE TABLE product_payments (
   id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
@@ -145,10 +169,13 @@ CREATE TABLE product_payments (
   id_payment_status INT(20) NOT NULL,
   quantity INT(20) NOT NULL,
   total DECIMAL(10, 2) NOT NULL,
+  total_receive_barbershop DECIMAL(10, 2) NOT NULL,
+  id_commission_value_product INT(20) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (id_product) REFERENCES products(id) ON DELETE CASCADE,
-  FOREIGN KEY (id_payment_status) REFERENCES payment_status(id) ON DELETE CASCADE
+  FOREIGN KEY (id_payment_status) REFERENCES payment_status(id) ON DELETE CASCADE,
+  FOREIGN KEY (id_commission_value_product) REFERENCES commission_value_product(id) ON DELETE CASCADE
 );
 
 -- Tabla para los pagos de las citas
@@ -158,17 +185,20 @@ CREATE TABLE appointment_payments (
   id_appointment INT(20) NOT NULL,
   id_payment_status INT(20) NOT NULL,
   total DECIMAL(10, 2) NOT NULL,
+  total_receive_barbershop DECIMAL(10, 2) NOT NULL,
+  id_commission_value_appointment INT(20) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (id_appointment) REFERENCES appointments(id) ON DELETE CASCADE,
-  FOREIGN KEY (id_payment_status) REFERENCES payment_status(id) ON DELETE CASCADE
+  FOREIGN KEY (id_payment_status) REFERENCES payment_status(id) ON DELETE CASCADE,
+  FOREIGN KEY (id_commission_value_appointment) REFERENCES commission_value_appointment(id) ON DELETE CASCADE
 );
 
 CREATE TABLE posts_classification(
   id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
   `name` VARCHAR(255) NOT NULL
 );
-INSERT INTO publication_classification (`name`) VALUES ('Promociones'), ('Eventos'), ('Noticias'), ('Consejos'), ('Tendencias'), ('Historias'), ('Tutoriales'), ('Entrevistas'), ('productos');
+INSERT INTO posts_classification (`name`) VALUES ('Promociones'), ('Eventos'), ('Noticias'), ('Consejos'), ('Tendencias'), ('Historias'), ('Tutoriales'), ('Entrevistas'), ('productos');
 -- tabla para registro de publicaciones
 CREATE TABLE posts (
   id INT(20) AUTO_INCREMENT PRIMARY KEY NOT NULL,
@@ -218,4 +248,3 @@ CREATE TABLE barber_reviews (
   FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (id_barber) REFERENCES barbers(id) ON DELETE CASCADE
 );
-

@@ -1,8 +1,8 @@
-// src/modules/countries/entities/country.entity.ts
+// src/modules/auth/entities/role.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('countries')
-export class Country {
+@Entity('roles')
+export class Role {
     @PrimaryGeneratedColumn()
     id!: number;
 

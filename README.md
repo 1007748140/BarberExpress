@@ -18,6 +18,7 @@ BarberExpress/
 │   │   │   ├── auth/               #falta adaptaciones
 │   │   │   │   ├── controllers/
 │   │   │   │   ├── dtos/
+│   │   │   │   ├── entities/
 │   │   │   │   ├── services/
 │   │   │   │   └── routes/
 │   │   │   ├── countries/

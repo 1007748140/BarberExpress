@@ -9,20 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StateService = void 0;
+exports.DepartmentService = void 0;
 const database_1 = require("../../../config/database");
 const state_entity_1 = require("../entities/state.entity");
-class StateService {
+class DepartmentService {
     constructor() {
-        this.stateRepository = database_1.AppDataSource.getRepository(state_entity_1.State);
+        this.departmentRepository = database_1.AppDataSource.getRepository(state_entity_1.Department);
     }
-    getStatesByCountry(countryId) {
+    getDepartmentsByCountry(countryId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.stateRepository.find({
-                where: { country_id: countryId },
+            return this.departmentRepository.find({
+                where: { country: { id: countryId } },
+                relations: ['country'],
             });
         });
     }
 }
-exports.StateService = StateService;
+exports.DepartmentService = DepartmentService;
 //# sourceMappingURL=state.service.js.map

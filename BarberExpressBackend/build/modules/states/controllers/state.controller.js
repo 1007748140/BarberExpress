@@ -9,26 +9,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StateController = void 0;
+exports.DepartmentController = void 0;
 const state_service_1 = require("../services/state.service");
-class StateController {
+class DepartmentController {
     constructor() {
-        this.getStatesByCountry = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.getDepartmentsByCountry = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const countryId = parseInt(req.query.countryId);
                 if (isNaN(countryId)) {
                     res.status(400).json({ message: 'Invalid country ID' });
                     return;
                 }
-                const states = yield this.stateService.getStatesByCountry(countryId);
-                res.json(states);
+                const departments = yield this.departmentService.getDepartmentsByCountry(countryId);
+                res.json(departments);
             }
             catch (error) {
                 res.status(500).json({ message: error.message });
             }
         });
-        this.stateService = new state_service_1.StateService();
+        this.departmentService = new state_service_1.DepartmentService();
     }
 }
-exports.StateController = StateController;
+exports.DepartmentController = DepartmentController;
 //# sourceMappingURL=state.controller.js.map
