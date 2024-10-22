@@ -11,22 +11,32 @@ if (!JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined in the environment variables.');
 }
 
-interface TokenPayload {
+export interface TokenPayload {
     id: number;
     email: string;
     role: string;
 }
 
-export const generateToken = (userId: number, email: string, role: string): string => {
+export const generateToken = (
+    userId: number, 
+    email: string, 
+    role: string
+): string => {
     const payload: TokenPayload = {
         id: userId,
         email,
         role
     };
 
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    return jwt.sign(payload, JWT_SECRET, { 
+        expiresIn: JWT_EXPIRES_IN 
+    });
 };
 
 export const verifyToken = (token: string): TokenPayload => {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload;
+    try {
+        return jwt.verify(token, JWT_SECRET) as TokenPayload;
+    } catch (error) {
+        throw new Error('Token verification failed');
+    }
 };

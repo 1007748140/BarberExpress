@@ -18,17 +18,53 @@ class UserController {
     constructor() {
         this.registerUser = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const userData = (0, class_transformer_1.plainToClass)(create_user_dto_1.CreateUserDto, req.body);
+                const userData = (0, class_transformer_1.plainToClass)(create_user_dto_1.CreateUserDto, {
+                    firstName: req.body.firstName || req.body.first_name,
+                    lastName: req.body.lastName || req.body.last_name,
+                    email: req.body.email,
+                    password: req.body.password,
+                    phone: req.body.phone,
+                    idRole: req.body.idRole || req.body.id_role,
+                    idCountry: req.body.idCountry || req.body.id_country,
+                    idDepartment: req.body.idDepartment || req.body.id_department,
+                    latitude: req.body.latitude,
+                    longitude: req.body.longitude
+                });
                 const errors = yield (0, class_validator_1.validate)(userData);
                 if (errors.length > 0) {
-                    res.status(400).json({ errors });
-                    return;
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Validation failed',
+                        errors: errors.map(error => ({
+                            property: error.property,
+                            constraints: error.constraints
+                        }))
+                    });
                 }
                 const newUser = yield this.userService.createUser(userData);
-                res.status(201).json(newUser);
+                return res.status(201).json({
+                    success: true,
+                    message: 'User created successfully',
+                    data: newUser
+                });
             }
             catch (error) {
-                res.status(400).json({ message: error.message });
+                if (error instanceof Error) {
+                    if (error.message === 'Email already exists') {
+                        return res.status(409).json({
+                            success: false,
+                            message: 'Email already exists'
+                        });
+                    }
+                    return res.status(400).json({
+                        success: false,
+                        message: error.message
+                    });
+                }
+                return res.status(500).json({
+                    success: false,
+                    message: 'Internal server error'
+                });
             }
         });
         this.userService = new user_service_1.UserService();

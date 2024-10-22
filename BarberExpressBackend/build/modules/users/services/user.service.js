@@ -36,18 +36,18 @@ class UserService {
                 }
                 const hashedPassword = yield bcrypt_1.default.hash(userData.password, 10);
                 const user = this.userRepository.create({
-                    first_name: userData.first_name,
-                    last_name: userData.last_name,
+                    firstName: userData.firstName,
+                    lastName: userData.lastName,
                     email: userData.email,
                     password: hashedPassword,
                     phone: userData.phone,
-                    role: { id: userData.id_role }
+                    role: { id: userData.idRole }
                 });
                 yield queryRunner.manager.save(user);
                 const location = this.userLocationRepository.create({
                     user: user,
-                    country: { id: userData.id_country },
-                    department: { id: userData.id_department },
+                    country: { id: userData.idCountry },
+                    department: { id: userData.idDepartment },
                     latitude: userData.latitude,
                     longitude: userData.longitude,
                 });

@@ -18,11 +18,18 @@ const generateToken = (userId, email, role) => {
         email,
         role
     };
-    return jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    return jsonwebtoken_1.default.sign(payload, JWT_SECRET, {
+        expiresIn: JWT_EXPIRES_IN
+    });
 };
 exports.generateToken = generateToken;
 const verifyToken = (token) => {
-    return jsonwebtoken_1.default.verify(token, JWT_SECRET);
+    try {
+        return jsonwebtoken_1.default.verify(token, JWT_SECRET);
+    }
+    catch (error) {
+        throw new Error('Token verification failed');
+    }
 };
 exports.verifyToken = verifyToken;
 //# sourceMappingURL=jwt.config.js.map

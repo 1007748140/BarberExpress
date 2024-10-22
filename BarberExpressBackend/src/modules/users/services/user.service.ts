@@ -29,20 +29,20 @@ export class UserService {
 
             // Create user
             const user = this.userRepository.create({
-                first_name: userData.first_name,
-                last_name: userData.last_name,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
                 email: userData.email,
                 password: hashedPassword,
                 phone: userData.phone,
-                role: { id: userData.id_role }
+                role: { id: userData.idRole }
             });
             await queryRunner.manager.save(user);
 
             // Create user_location
             const location = this.userLocationRepository.create({
                 user: user,
-                country: { id: userData.id_country },
-                department: { id: userData.id_department },
+                country: { id: userData.idCountry },
+                department: { id: userData.idDepartment },
                 latitude: userData.latitude,
                 longitude: userData.longitude,
             });
