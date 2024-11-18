@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const user_location_controller_1 = require("../controllers/user-location.controller");
+const bank_account_controller_1 = require("../controllers/bank-account.controller");
+const auth_middleware_1 = require("../../../middlewares/auth.middleware");
+const router = (0, express_1.Router)();
+const userLocationController = new user_location_controller_1.UserLocationController();
+const bankAccountController = new bank_account_controller_1.BankAccountController();
+router.post('/location', (0, auth_middleware_1.authMiddleware)(['Cliente', 'Barbero', 'AdminBarberia']), userLocationController.create);
+router.get('/location', (0, auth_middleware_1.authMiddleware)(['Cliente', 'Barbero', 'AdminBarberia']), userLocationController.getUserLocation);
+router.get('/countries', userLocationController.getCountries);
+router.get('/departments/:countryId', userLocationController.getDepartments);
+router.post('/bank-accounts', (0, auth_middleware_1.authMiddleware)(['Barbero', 'AdminBarberia']), bankAccountController.create);
+router.get('/bank-accounts', (0, auth_middleware_1.authMiddleware)(['Barbero', 'AdminBarberia']), bankAccountController.getUserBankAccounts);
+router.get('/document-types', (0, auth_middleware_1.authMiddleware)(['Barbero', 'AdminBarberia']), bankAccountController.getDocumentTypes);
+router.get('/account-types', (0, auth_middleware_1.authMiddleware)(['Barbero', 'AdminBarberia']), bankAccountController.getAccountTypes);
+router.delete('/bank-accounts/:id', (0, auth_middleware_1.authMiddleware)(['Barbero', 'AdminBarberia']), bankAccountController.delete);
+exports.default = router;
+//# sourceMappingURL=user-info.routes.js.map

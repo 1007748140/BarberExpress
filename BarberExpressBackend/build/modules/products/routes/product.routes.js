@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const product_controller_1 = require("../controllers/product.controller");
+const inventory_controller_1 = require("../controllers/inventory.controller");
+const product_payment_controller_1 = require("../controllers/product-payment.controller");
+const auth_middleware_1 = require("../../../middlewares/auth.middleware");
+const router = (0, express_1.Router)();
+const productController = new product_controller_1.ProductController();
+const inventoryController = new inventory_controller_1.InventoryController();
+const productPaymentController = new product_payment_controller_1.ProductPaymentController();
+router.post('/barbershop', (0, auth_middleware_1.authMiddleware)(['AdminBarberia']), productController.addProductToBarbershop);
+router.get('/barbershop/:barbershopId', (req, res) => productController.getBarbershopProducts(req, res));
+router.delete('/barbershop/:barbershopId/product/:productId', (0, auth_middleware_1.authMiddleware)(['AdminBarberia']), productController.removeProductFromBarbershop);
+router.put('/inventory/:barbershopProductId', (0, auth_middleware_1.authMiddleware)(['AdminBarberia']), inventoryController.updateInventory);
+router.get('/inventory/:barbershopProductId', (0, auth_middleware_1.authMiddleware)(['AdminBarberia']), (req, res) => inventoryController.getInventory(req, res));
+router.post('/payments', (0, auth_middleware_1.authMiddleware)(['Cliente']), productPaymentController.createPayment);
+router.get('/payments/user', (0, auth_middleware_1.authMiddleware)(['Cliente']), productPaymentController.getUserPayments);
+exports.default = router;
+//# sourceMappingURL=product.routes.js.map
