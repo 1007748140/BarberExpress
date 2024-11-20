@@ -1,0 +1,22 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const post_controller_1 = require("../controllers/post.controller");
+const comment_controller_1 = require("../controllers/comment.controller");
+const review_controller_1 = require("../controllers/review.controller");
+const auth_middleware_1 = require("../../../middlewares/auth.middleware");
+const router = (0, express_1.Router)();
+const postController = new post_controller_1.PostController();
+const commentController = new comment_controller_1.CommentController();
+const reviewController = new review_controller_1.ReviewController();
+router.post('/', (0, auth_middleware_1.authMiddleware)(['Barbero', 'AdminBarberia']), postController.create);
+router.get('/barbershop/:barbershopId', postController.getBarbershopPosts);
+router.get('/:id', postController.getById);
+router.delete('/:id', (0, auth_middleware_1.authMiddleware)(['Barbero', 'AdminBarberia']), postController.delete);
+router.post('/:postId/comments', (0, auth_middleware_1.authMiddleware)(['Cliente', 'Barbero', 'AdminBarberia']), commentController.create);
+router.get('/:postId/comments', commentController.getPostComments);
+router.delete('/comments/:id', (0, auth_middleware_1.authMiddleware)(['Cliente', 'Barbero', 'AdminBarberia']), commentController.delete);
+router.post('/reviews', (0, auth_middleware_1.authMiddleware)(['Cliente']), reviewController.create);
+router.get('/reviews/barbershop/:barbershopId', reviewController.getBarbershopReviews);
+exports.default = router;
+//# sourceMappingURL=post.routes.js.map

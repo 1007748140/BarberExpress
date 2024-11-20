@@ -1,0 +1,52 @@
+name: barber_express_app
+description: A new Flutter project.
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.19.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  # Gestión de estado
+  flutter_bloc: ^8.1.3
+  # Inyección de dependencias
+  get_it: ^7.6.4
+  # Programación funcional
+  dartz: ^0.10.1
+  # Cliente HTTP
+  dio: ^5.3.3
+  # Almacenamiento local
+  shared_preferences: ^2.2.2
+  # Formateo de fechas
+  intl: ^0.18.1
+  # Generador de equals/hashCode
+  equatable: ^2.0.5
+  # Ubicación
+  geolocator: ^10.1.0
+  # Mapas
+  google_maps_flutter: ^2.5.0
+  # Selector de imágenes
+  image_picker: ^1.0.4
+  # Permisos
+  permission_handler: ^11.0.1
+  geocoding: ^2.1.1
+  http: ^1.1.0
+  flutter_dotenv: ^5.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  mockito: ^5.4.2
+  build_runner: ^2.4.6
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - .env
