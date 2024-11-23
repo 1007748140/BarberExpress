@@ -1,9 +1,9 @@
 // lib/presentation/bloc/profile/profile_bloc.dart
-import 'package:barber_express_app/core/error/failures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/repositories/profile_repository.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
+
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final ProfileRepository repository;
@@ -11,6 +11,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc({required this.repository}) : super(ProfileInitial()) {
     on<LoadProfileEvent>(_onLoadProfile);
     on<UpdateProfileEvent>(_onUpdateProfile);
+    on<UploadProfileImageEvent>(_onUploadProfileImage);
   }
 
   Future<void> _onLoadProfile(
@@ -19,11 +20,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     try {
       emit(ProfileLoading());
-      final profile = await repository.getProfile();
-      emit(ProfileLoaded(profile));
+      final result = await repository.getProfile();
+      
+      result.fold(
+        (failure) => emit(ProfileError(failure.message)),
+        (profile) => emit(ProfileLoaded(profile)),
+      );
     } catch (e) {
-      print('ProfileBloc: Error al cargar perfil - $e');
-      emit(ProfileError(e is ServerFailure ? e.message : 'Error al cargar el perfil'));
+      emit(ProfileError('Error al cargar el perfil: ${e.toString()}'));
     }
   }
 
@@ -33,15 +37,57 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     try {
       emit(ProfileLoading());
-      final updatedProfile = await repository.updateProfile(
+      final result = await repository.updateProfile(
         firstName: event.firstName,
         lastName: event.lastName,
         phone: event.phone,
         profileImage: event.profileImage,
       );
-      emit(ProfileLoaded(updatedProfile));
+
+      result.fold(
+        (failure) => emit(ProfileError(failure.message)),
+        (profile) => emit(ProfileLoaded(profile)),
+      );
     } catch (e) {
-      emit(ProfileError(e.toString()));
+      emit(ProfileError('Error al actualizar el perfil: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onUploadProfileImage(
+    UploadProfileImageEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
+    try {
+      emit(ProfileLoading());
+      
+      // Subir la imagen
+      final uploadResult = await repository.uploadProfileImage(event.imageFile);
+      
+      await uploadResult.fold(
+        (failure) {
+          emit(ProfileError(failure.message));
+          return;
+        },
+        (imageUrl) async {
+          // Si el estado actual es ProfileLoaded, actualizar el perfil con la nueva imagen
+          if (state is ProfileLoaded) {
+            final currentProfile = (state as ProfileLoaded).profile;
+            final updateResult = await repository.updateProfile(
+              firstName: currentProfile.firstName,
+              lastName: currentProfile.lastName,
+              phone: currentProfile.phone,
+              profileImage: imageUrl,
+            );
+
+            updateResult.fold(
+              (failure) => emit(ProfileError(failure.message)),
+              (profile) => emit(ProfileLoaded(profile)),
+            );
+          }
+        },
+      );
+    } catch (e) {
+      emit(ProfileError('Error al subir la imagen: ${e.toString()}'));
     }
   }
 }

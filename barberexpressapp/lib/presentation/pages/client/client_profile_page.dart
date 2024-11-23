@@ -8,6 +8,8 @@ import '../../bloc/profile/profile_event.dart';
 import '../../bloc/profile/profile_state.dart';
 import '../../../di/injection_container.dart';
 
+import 'dart:io';
+
 class ClientProfilePage extends StatelessWidget {
   const ClientProfilePage({Key? key}) : super(key: key);
 
@@ -28,40 +30,22 @@ class _ProfilePageContent extends StatelessWidget {
         title: Text('Mi Perfil'),
         backgroundColor: AppTheme.primaryColor,
       ),
-      body: BlocBuilder<ProfileBloc, ProfileState>(
+      body: BlocConsumer<ProfileBloc, ProfileState>(
+        listener: (context, state) {
+          if (state is ProfileError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppTheme.errorColor,
+              ),
+            );
+          }
+        },
         builder: (context, state) {
           if (state is ProfileLoading) {
             return Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(AppTheme.secondaryColor),
-              ),
-            );
-          }
-
-          if (state is ProfileError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: AppTheme.errorColor,
-                    size: 60,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    state.message,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppTheme.errorColor),
-                  ),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<ProfileBloc>().add(LoadProfileEvent());
-                    },
-                    child: Text('Reintentar'),
-                  ),
-                ],
               ),
             );
           }
@@ -73,7 +57,17 @@ class _ProfilePageContent extends StatelessWidget {
               email: state.profile.user.email,
               phone: state.profile.phone,
               profileImage: state.profile.profileImage,
-              onUpdate: (firstName, lastName, phone, profileImage) {
+              onUpdate: (firstName, lastName, phone, profileImage) async {
+                if (profileImage != null && profileImage != state.profile.profileImage) {
+                  // Si hay una nueva imagen, primero la subimos
+                  context.read<ProfileBloc>().add(
+                    UploadProfileImageEvent(
+                      imageFile: File(profileImage),
+                    ),
+                  );
+                }
+
+                // Actualizamos el resto del perfil
                 context.read<ProfileBloc>().add(
                   UpdateProfileEvent(
                     firstName: firstName,
@@ -87,8 +81,27 @@ class _ProfilePageContent extends StatelessWidget {
           }
 
           return Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.secondaryColor),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 60,
+                  color: AppTheme.errorColor,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Error al cargar el perfil',
+                  style: TextStyle(color: AppTheme.errorColor),
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<ProfileBloc>().add(LoadProfileEvent());
+                  },
+                  child: Text('Reintentar'),
+                ),
+              ],
             ),
           );
         },

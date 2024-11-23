@@ -14,6 +14,12 @@ class ApiService {
         connectTimeout: ApiConfig.timeout,
         receiveTimeout: ApiConfig.timeout,
         headers: ApiConfig.headers,
+        validateStatus: (status) {
+          return status! < 500;
+        },
+        // Aumentar el límite máximo de respuesta
+        receiveDataWhenStatusError: true,
+        maxRedirects: 5,
       ),
     );
 
@@ -25,6 +31,26 @@ class ApiService {
       responseHeader: true,
       responseBody: true,
       error: true,
+      logPrint: (object) {
+        print('DIO LOG: $object');
+      },
+    ));
+
+    // Interceptor para manejar errores
+    _dio.interceptors.add(InterceptorsWrapper(
+      onError: (DioError e, handler) async {
+        print('Error Code: ${e.response?.statusCode}');
+        print('Error Data: ${e.response?.data}');
+        return handler.next(e);
+      },
+      onRequest: (options, handler) {
+        print('Sending request: ${options.method} ${options.path}');
+        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        print('Received response: ${response.statusCode}');
+        return handler.next(response);
+      },
     ));
   }
 
@@ -39,52 +65,61 @@ class ApiService {
     };
   }
 
-  Future<Response> get(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-    bool useAuthHeaders = true,
-  }) async {
-    try {
-      print('REQUEST[GET] => PATH: $path');
-      final headers = useAuthHeaders ? getAuthHeaders() : ApiConfig.headers;
-      final response = await _dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: options ?? Options(headers: headers),
-      );
-      print('RESPONSE[${response.statusCode}] => PATH: $path');
-      return response;
-    } on DioError catch (e) {
-      print('ERROR[${e.response?.statusCode}] => PATH: $path');
-      print('ERROR MESSAGE: ${e.message}');
-      print('ERROR DATA: ${e.response?.data}');
-      rethrow;
-    }
-  }
-
   Future<Response> post(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
     bool useAuthHeaders = true,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
   }) async {
     try {
-      print('REQUEST[POST] => PATH: $path');
       final headers = useAuthHeaders ? getAuthHeaders() : ApiConfig.headers;
       final response = await _dio.post(
         path,
         data: data,
         queryParameters: queryParameters,
         options: options ?? Options(headers: headers),
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
       );
-      print('RESPONSE[${response.statusCode}] => PATH: $path');
+
+      if (response.statusCode == 413) {
+        throw DioError(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioErrorType.badResponse,
+          error: 'Archivo demasiado grande. El tamaño máximo permitido es 5MB.',
+        );
+      }
+
       return response;
     } on DioError catch (e) {
-      print('ERROR[${e.response?.statusCode}] => PATH: $path');
-      print('ERROR MESSAGE: ${e.message}');
-      print('ERROR DATA: ${e.response?.data}');
+      print('DioError en post: ${e.message}');
+      print('Response: ${e.response?.data}');
+      rethrow;
+    }
+  }
+
+  Future<Response> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    bool useAuthHeaders = true,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    try {
+      final headers = useAuthHeaders ? getAuthHeaders() : ApiConfig.headers;
+      return await _dio.get(
+        path,
+        queryParameters: queryParameters,
+        options: options ?? Options(headers: headers),
+        onReceiveProgress: onReceiveProgress,
+      );
+    } on DioError catch (e) {
+      print('DioError en get: ${e.message}');
+      print('Response: ${e.response?.data}');
       rethrow;
     }
   }
@@ -95,74 +130,22 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
     Options? options,
     bool useAuthHeaders = true,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
   }) async {
     try {
-      print('REQUEST[PUT] => PATH: $path');
       final headers = useAuthHeaders ? getAuthHeaders() : ApiConfig.headers;
-      final response = await _dio.put(
+      return await _dio.put(
         path,
         data: data,
         queryParameters: queryParameters,
         options: options ?? Options(headers: headers),
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
       );
-      print('RESPONSE[${response.statusCode}] => PATH: $path');
-      return response;
     } on DioError catch (e) {
-      print('ERROR[${e.response?.statusCode}] => PATH: $path');
-      print('ERROR MESSAGE: ${e.message}');
-      print('ERROR DATA: ${e.response?.data}');
-      rethrow;
-    }
-  }
-
-  Future<Response> delete(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-    bool useAuthHeaders = true,
-  }) async {
-    try {
-      print('REQUEST[DELETE] => PATH: $path');
-      final headers = useAuthHeaders ? getAuthHeaders() : ApiConfig.headers;
-      final response = await _dio.delete(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options ?? Options(headers: headers),
-      );
-      print('RESPONSE[${response.statusCode}] => PATH: $path');
-      return response;
-    } on DioError catch (e) {
-      print('ERROR[${e.response?.statusCode}] => PATH: $path');
-      print('ERROR MESSAGE: ${e.message}');
-      print('ERROR DATA: ${e.response?.data}');
-      rethrow;
-    }
-  }
-
-  Future<Response> patch(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-    bool useAuthHeaders = true,
-  }) async {
-    try {
-      print('REQUEST[PATCH] => PATH: $path');
-      final headers = useAuthHeaders ? getAuthHeaders() : ApiConfig.headers;
-      final response = await _dio.patch(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options ?? Options(headers: headers),
-      );
-      print('RESPONSE[${response.statusCode}] => PATH: $path');
-      return response;
-    } on DioError catch (e) {
-      print('ERROR[${e.response?.statusCode}] => PATH: $path');
-      print('ERROR MESSAGE: ${e.message}');
-      print('ERROR DATA: ${e.response?.data}');
+      print('DioError en put: ${e.message}');
+      print('Response: ${e.response?.data}');
       rethrow;
     }
   }
@@ -185,10 +168,5 @@ class ApiService {
   // Método para obtener el token actual
   String? getToken() {
     return _prefs.getString('token');
-  }
-
-  // Método para imprimir el token actual (útil para debugging)
-  void printCurrentToken() {
-    print('Current Token: ${getToken()}');
   }
 }

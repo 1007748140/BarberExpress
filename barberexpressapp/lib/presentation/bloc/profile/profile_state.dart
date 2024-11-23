@@ -15,11 +15,25 @@ class ProfileLoading extends ProfileState {}
 
 class ProfileLoaded extends ProfileState {
   final ProfileModel profile;
+  final bool imageUploading;
 
-  const ProfileLoaded(this.profile);
+  const ProfileLoaded(
+    this.profile, {
+    this.imageUploading = false,
+  });
 
   @override
-  List<Object?> get props => [profile];
+  List<Object?> get props => [profile, imageUploading];
+
+  ProfileLoaded copyWith({
+    ProfileModel? profile,
+    bool? imageUploading,
+  }) {
+    return ProfileLoaded(
+      profile ?? this.profile,
+      imageUploading: imageUploading ?? this.imageUploading,
+    );
+  }
 }
 
 class ProfileError extends ProfileState {
@@ -28,5 +42,32 @@ class ProfileError extends ProfileState {
   const ProfileError(this.message);
 
   @override
-  List<Object?> get props => [message];
+  List<Object> get props => [message];
+}
+
+class ProfileImageUploading extends ProfileState {
+  final double progress;
+
+  const ProfileImageUploading(this.progress);
+
+  @override
+  List<Object> get props => [progress];
+}
+
+class ProfileImageUploadSuccess extends ProfileState {
+  final String imageUrl;
+
+  const ProfileImageUploadSuccess(this.imageUrl);
+
+  @override
+  List<Object> get props => [imageUrl];
+}
+
+class ProfileImageUploadError extends ProfileState {
+  final String message;
+
+  const ProfileImageUploadError(this.message);
+
+  @override
+  List<Object> get props => [message];
 }

@@ -4,7 +4,24 @@
   <base href="$FLUTTER_BASE_HREF">
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="BarberExpress App">
+  <meta name="description" content="Aplicación de gestión de barberías">
+  
+  <!-- Meta tags para permisos y seguridad -->
+  <meta name="permissions-policy" content="camera=*, microphone=*">
+  <meta http-equiv="Permissions-Policy" content="camera=self; microphone=self">
+  
+  <!-- Content Security Policy -->
+  <meta http-equiv="Content-Security-Policy" 
+        content="default-src * self blob: data: gap: mediastream: 'unsafe-inline' 'unsafe-eval' ws: wss:; 
+                 style-src * self 'unsafe-inline' blob: data: gap:; 
+                 script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; 
+                 object-src * 'self' blob: data: gap:; 
+                 img-src * self 'unsafe-inline' blob: data: gap:; 
+                 connect-src self * 'unsafe-inline' blob: data: gap: ws: wss:; 
+                 frame-src * self blob: data: gap:;
+                 worker-src * 'self' blob: data: gap:;
+                 media-src * 'self' blob: mediastream:;
+                 font-src * 'self' data: gap:;">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,83 +30,98 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png">
 
   <title>BarberExpress</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Google Maps JavaScript API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQt2YnWaw2ABUBy110tjCc5woslxLoi3U&libraries=places,geocoding"></script>
-
-  <script>
-    // The value below is injected by flutter build, do not touch.
-    var serviceWorkerVersion = null;
-  </script>
-  <!-- This script adds the flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
-</head>
-<body>
-  <script>
-    window.addEventListener('load', function(ev) {
-      var loading = document.querySelector('#loading');
-      // Download main.dart.js
-      _flutter = {
-        loader: {
-          loadEntrypoint: function(options) {
-            return Flutter.loadEntrypoint(options);
-          }
-        }
-      };
-      var scriptLoaded = false;
-      function handleScriptLoaded() {
-        if (!scriptLoaded) {
-          scriptLoaded = true;
-          var scriptTag = document.createElement('script');
-          scriptTag.src = 'main.dart.js';
-          scriptTag.type = 'application/javascript';
-          document.body.append(scriptTag);
-        }
-      }
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('flutter-first-frame', function () {
-          if (loading) {
-            loading.remove();
-          }
-        });
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('flutter_service_worker.js?v=' + serviceWorkerVersion);
-        });
-      }
-      handleScriptLoaded();
-    });
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html>
-<head>
-  <base href="$FLUTTER_BASE_HREF">
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="barber_express_app">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-  <link rel="icon" type="image/png" href="favicon.png"/>
-  <title>barber_express_app</title>
-  <link rel="manifest" href="manifest.json">
-   <!-- Google Maps JavaScript API -->
-   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQt2YnWaw2ABUBy110tjCc5woslxLoi3U&libraries=places,geocoding"></script>
-
-   
   <script>
     // The value below is injected by flutter build, do not touch.
     const serviceWorkerVersion = null;
   </script>
+
+  <!-- Scripts para manejo de cámara -->
+  <script>
+    // Función para verificar y solicitar permisos de cámara
+    async function checkAndRequestCameraPermission() {
+      try {
+        // Verificar si el navegador soporta mediaDevices
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          console.log('getUserMedia no está soportado en este navegador');
+          return false;
+        }
+
+        // Intentar obtener los permisos
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: {
+            facingMode: 'user',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false 
+        });
+
+        // Si llegamos aquí, los permisos fueron concedidos
+        // Detenemos el stream ya que solo estábamos verificando
+        stream.getTracks().forEach(track => track.stop());
+        return true;
+      } catch (err) {
+        console.error('Error al solicitar permisos de cámara:', err);
+        return false;
+      }
+    }
+
+    // Función para inicializar la cámara
+    async function initializeCamera(videoElementId) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'user',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+
+        const videoElement = document.getElementById(videoElementId);
+        if (videoElement) {
+          videoElement.srcObject = stream;
+          await videoElement.play();
+          return true;
+        }
+        return false;
+      } catch (err) {
+        console.error('Error al inicializar la cámara:', err);
+        return false;
+      }
+    }
+
+    // Función para detener la cámara
+    function stopCamera(videoElementId) {
+      const videoElement = document.getElementById(videoElementId);
+      if (videoElement && videoElement.srcObject) {
+        const tracks = videoElement.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        videoElement.srcObject = null;
+      }
+    }
+
+    // Solicitar permisos al cargar la página
+    window.addEventListener('load', function() {
+      checkAndRequestCameraPermission();
+    });
+  </script>
+
+  <!-- Flutter initialization -->
   <script src="flutter.js" defer></script>
 </head>
 <body>
+  <!-- Container para elementos de la cámara -->
+  <div id="camera-container" style="display: none;">
+    <video id="camera-preview" playsinline autoplay style="display: none;"></video>
+    <canvas id="camera-canvas" style="display: none;"></canvas>
+  </div>
+
   <script>
     window.addEventListener('load', function(ev) {
       // Download main.dart.js
@@ -105,5 +137,8 @@
       });
     });
   </script>
+
+  <!-- Elemento para mensajes de depuración -->
+  <div id="debug-messages" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); color: white; padding: 10px; font-family: monospace;"></div>
 </body>
 </html>

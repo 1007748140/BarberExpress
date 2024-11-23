@@ -1,6 +1,7 @@
 // lib/presentation/bloc/profile/profile_event.dart
 import 'package:equatable/equatable.dart';
 
+
 abstract class ProfileEvent extends Equatable {
   const ProfileEvent();
 
@@ -25,4 +26,20 @@ class UpdateProfileEvent extends ProfileEvent {
 
   @override
   List<Object?> get props => [firstName, lastName, phone, profileImage];
+}
+
+class UploadProfileImageEvent extends ProfileEvent {
+  final dynamic imageFile; // Puede ser XFile, File o String (base64)
+
+  const UploadProfileImageEvent({
+    required this.imageFile,
+  });
+
+  @override
+  List<Object?> get props => [imageFile];
+}
+
+class DeleteProfileImageEvent extends ProfileEvent {
+  @override
+  List<Object?> get props => [];
 }

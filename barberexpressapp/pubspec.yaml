@@ -24,19 +24,25 @@ dependencies:
   shared_preferences: ^2.2.2
   # Formateo de fechas
   intl: ^0.18.1
+  path: ^1.8.3
+  path_provider: ^2.1.1
   # Generador de equals/hashCode
   equatable: ^2.0.5
+  http_parser: ^4.0.2
   # Ubicación
   geolocator: ^10.1.0
   # Mapas
   google_maps_flutter: ^2.5.0
   # Selector de imágenes
   image_picker: ^1.0.4
+  image_picker_for_web: ^3.0.1
+  image_picker_web: ^3.0.0
   # Permisos
   permission_handler: ^11.0.1
   geocoding: ^2.1.1
   http: ^1.1.0
   flutter_dotenv: ^5.0.2
+  image: ^4.0.17  # Para el procesamiento de imágenes
 
 dev_dependencies:
   flutter_test:

@@ -4,23 +4,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/network/api_service.dart';
 import '../data/datasources/auth_remote_datasource.dart';
 import '../data/datasources/barbershop_remote_datasource.dart';
-import '../data/datasources/profile_remote_datasource.dart';  // Añadido
+import '../data/datasources/profile_remote_datasource.dart';
 import '../data/repositories/auth_repository_impl.dart';
 import '../data/repositories/barbershop_repository_impl.dart';
-import '../data/repositories/profile_repository_impl.dart';  // Añadido
+import '../data/repositories/profile_repository_impl.dart';
 import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/barbershop_repository.dart';
-import '../domain/repositories/profile_repository.dart';  // Añadido
+import '../domain/repositories/profile_repository.dart';
 import '../presentation/bloc/auth/auth_bloc.dart';
 import '../presentation/bloc/auth/register_bloc.dart';
 import '../presentation/bloc/barbershop/barbershop_bloc.dart';
-import '../presentation/bloc/profile/profile_bloc.dart';  // Añadido
+import '../presentation/bloc/profile/profile_bloc.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  //! Features - Auth
-  // Bloc
+  //! Features
+
+  // Blocs
   sl.registerFactory<AuthBloc>(
     () => AuthBloc(authRepository: sl()),
   );
@@ -29,7 +30,6 @@ Future<void> init() async {
     () => RegisterBloc(authRepository: sl()),
   );
 
-  // Añadido: Profile Bloc
   sl.registerFactory<ProfileBloc>(
     () => ProfileBloc(repository: sl()),
   );
@@ -38,7 +38,7 @@ Future<void> init() async {
     () => BarbershopBloc(repository: sl()),
   );
 
-  // Repository
+  // Repositories
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
       remoteDataSource: sl(),
@@ -46,7 +46,6 @@ Future<void> init() async {
     ),
   );
 
-  // Añadido: Profile Repository
   sl.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(
       remoteDataSource: sl(),
@@ -64,7 +63,6 @@ Future<void> init() async {
     () => AuthRemoteDataSourceImpl(apiService: sl()),
   );
 
-  // Añadido: Profile Remote Data Source
   sl.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileRemoteDataSourceImpl(apiService: sl()),
   );
@@ -75,10 +73,10 @@ Future<void> init() async {
     ),
   );
 
-//! Core
-sl.registerLazySingleton(() => ApiService(sl<SharedPreferences>()));
+  //! Core
+  sl.registerLazySingleton(() => ApiService(sl<SharedPreferences>()));
 
-//! External
-final sharedPreferences = await SharedPreferences.getInstance();
-sl.registerLazySingleton(() => sharedPreferences);
+  //! External
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
 }

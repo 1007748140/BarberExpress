@@ -3,44 +3,70 @@ import '../auth/user_model.dart';
 
 class ProfileModel {
   final int id;
+  final UserModel user;
   final String firstName;
   final String lastName;
   final String phone;
   final String? profileImage;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final UserModel user;
-  final double? latitude;
-  final double? longitude;
-  String? formattedAddress; // Para almacenar la dirección formateada
 
   ProfileModel({
     required this.id,
+    required this.user,
     required this.firstName,
     required this.lastName,
     required this.phone,
     this.profileImage,
     required this.createdAt,
     required this.updatedAt,
-    required this.user,
-    this.latitude,
-    this.longitude,
-    this.formattedAddress,
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
     return ProfileModel(
       id: json['id'],
+      user: UserModel.fromJson(json['user']),
       firstName: json['firstName'],
       lastName: json['lastName'],
       phone: json['phone'],
       profileImage: json['profileImage'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
-      user: UserModel.fromJson(json['user']),
-      latitude: json['latitude']?.toDouble(),
-      longitude: json['longitude']?.toDouble(),
-      formattedAddress: json['formattedAddress'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user': user.toJson(),
+      'firstName': firstName,
+      'lastName': lastName,
+      'phone': phone,
+      'profileImage': profileImage,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+    };
+  }
+
+  ProfileModel copyWith({
+    int? id,
+    UserModel? user,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    String? profileImage,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return ProfileModel(
+      id: id ?? this.id,
+      user: user ?? this.user,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      phone: phone ?? this.phone,
+      profileImage: profileImage ?? this.profileImage,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }
