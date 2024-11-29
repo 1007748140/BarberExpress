@@ -22,20 +22,8 @@ void main() async {
   // Inicializar dependencias
   await di.init();
 
-  // Configuración específica para web
-  if (kIsWeb) {
-    // Configurar permisos para la cámara en web
-    try {
-      final navigator = js.context['navigator'];
-      if (navigator != null) {
-        await js.context['navigator']['mediaDevices'].callMethod('getUserMedia', [
-          js.JsObject.jsify({'video': true, 'audio': false})
-        ]);
-      }
-    } catch (e) {
-      print('Error al solicitar permisos de cámara iniciales: $e');
-    }
-  }
+  // Configurar permisos para la camara web
+  await configureWebPermissions();
 
   runApp(MyApp());
 }
