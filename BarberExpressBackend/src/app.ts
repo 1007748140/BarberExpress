@@ -1,11 +1,11 @@
-// src/app.ts
 import 'reflect-metadata';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { AppDataSource } from './config/database';
 
-// Importación de rutas
+// Importar rutas
 import authRoutes from './modules/auth/routes/auth.routes';
 import barbershopRoutes from './modules/barbershops/routes/barbershop.routes';
 import appointmentRoutes from './modules/appointments/routes/appointment.routes';
@@ -17,18 +17,24 @@ import locationRoutes from './modules/location/routes/location.routes';
 import uploadRoutes from './modules/upload/routes/upload.routes';
 
 // Sentry
-const Sentry = require('@sentry/node');
+import * as Sentry from '@sentry/node';
+import * as Tracing from '@sentry/tracing';
 
 const app = express();
 
-// Configurar sentry
+// Configurar Sentry
 Sentry.init({
     dsn: process.env.SENTRY_DSN,
+    integrations: [
+        new Sentry.Integrations.Http({ tracing: true }),
+        new Tracing.Integrations.Express({ app }),
+    ],
     tracesSampleRate: 1.0,
 });
 
-// Middleware para capturar errores
+// Middlewares de Sentry
 app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.tracingHandler());
 
 // Middlewares globales
 app.use(cors());
@@ -49,55 +55,52 @@ app.use(`${API_BASE_PATH}/profiles`, profileRoutes);
 app.use(`${API_BASE_PATH}/location`, locationRoutes);
 app.use(`${API_BASE_PATH}/upload`, uploadRoutes);
 
-// Finalizar captura de errores
+// Middleware de errores Sentry
 app.use(Sentry.Handlers.errorHandler());
 
 // Servir archivos estáticos
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Middleware para manejar rutas no encontradas
+// Middleware de rutas no encontradas
 app.use((req: Request, res: Response, next: NextFunction) => {
     if (!req.route) {
         return res.status(404).json({
             success: false,
-            message: 'Ruta no encontrada'
+            message: 'Ruta no encontrada',
         });
     }
     next();
 });
 
-// Middleware para manejo de errores
+// Middleware de manejo de errores
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Error:', err);
-    
+
     res.status(err.status || 500).json({
         success: false,
         message: err.message || 'Error interno del servidor',
-        error: process.env.NODE_ENV === 'development' ? err : undefined
+        error: process.env.NODE_ENV === 'development' ? err : undefined,
     });
 });
 
 // Inicializar base de datos y servidor
 const initializeServer = async () => {
     try {
-        // Conectar a la base de datos
         await AppDataSource.initialize();
-        console.log("Base de datos conectada exitosamente");
+        console.log('Base de datos conectada exitosamente');
 
-        // Configurar y arrancar el servidor
         const PORT = process.env.PORT || 3000;
         app.listen(PORT, () => {
             console.log(`Servidor corriendo en el puerto ${PORT}`);
             console.log(`API disponible en http://localhost:${PORT}${API_BASE_PATH}`);
         });
     } catch (error) {
-        console.error("Error al inicializar el servidor:", error);
+        console.error('Error al inicializar el servidor:', error);
         process.exit(1);
     }
 };
 
-// Crear el directorio de uploads si no existe
-import fs from 'fs';
+// Crear directorio de uploads si no existe
 const uploadsDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });

@@ -11,14 +11,21 @@ export const authMiddleware = (allowedRoles?: string[]) => {
         try {
             const authHeader = req.headers.authorization;
             
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
                 return res.status(401).json({ 
                     success: false,
-                    message: 'Authorization header must start with Bearer' 
+                    message: 'Authorization header is missing or malformed' 
                 });
             }
 
             const token = authHeader.split(' ')[1];
+            if (!token) {
+                return res.status(401).json({ 
+                    success: false,
+                    message: 'Token is missing from the Authorization header' 
+                });
+            }
+
             const decoded = verifyToken(token);
             req.user = decoded;
 
