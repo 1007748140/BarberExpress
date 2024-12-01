@@ -16,7 +16,19 @@ import profileRoutes from './modules/profiles/routes/profile.routes';
 import locationRoutes from './modules/location/routes/location.routes';
 import uploadRoutes from './modules/upload/routes/upload.routes';
 
+// Sentry
+const Sentry = require('@sentry/node');
+
 const app = express();
+
+// Configurar sentry
+Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    tracesSampleRate: 1.0,
+});
+
+// Middleware para capturar errores
+app.use(Sentry.Handlers.requestHandler());
 
 // Middlewares globales
 app.use(cors());
@@ -36,6 +48,9 @@ app.use(`${API_BASE_PATH}/user-info`, userInfoRoutes);
 app.use(`${API_BASE_PATH}/profiles`, profileRoutes);
 app.use(`${API_BASE_PATH}/location`, locationRoutes);
 app.use(`${API_BASE_PATH}/upload`, uploadRoutes);
+
+// Finalizar captura de errores
+app.use(Sentry.Handlers.errorHandler());
 
 // Servir archivos estáticos
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
