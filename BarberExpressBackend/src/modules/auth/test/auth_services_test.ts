@@ -1,159 +1,167 @@
-import { AuthService } from '../auth.service'; // Asegúrate de importar correctamente el servicio.
-import bcrypt from 'bcrypt'; // Para bcrypt
-import { User } from '../../entities/user.entity'; // Asegúrate de que las rutas estén correctas
-import { UserRepository } from '../../../repositories/user.repository'; // Importa el repositorio de usuario
-import { generateToken } from '../../../config/jwt.config'; // Si estás usando esta función para generar tokens
+// src/modules/auth/services/auth.service.spec.ts
+import { AuthService } from '../services/auth.service';
+import { AppDataSource } from '../../../config/database';
+import { User } from '../entities/user.entity';
+import { RegisterDto } from '../dtos/register.dto';
+import bcrypt from 'bcrypt';
+import { generateToken } from '../../../config/jwt.config';
 
-jest.mock('bcrypt', () => ({
-  compare: jest.fn().mockResolvedValue(true), // Mock de bcrypt.compare, lo que resuelve como true
-  hash: jest.fn().mockResolvedValue('hashedpassword'), // Mock de bcrypt.hash, lo que resuelve con un "hashedpassword"
-}));
-
-// Mockeamos las dependencias necesarias, como el repositorio de usuarios
-jest.mock('../../../repositories/user.repository', () => ({
-  UserRepository: {
-    findOne: jest.fn(),
-    create: jest.fn(),
-  },
-}));
-
-// Mock de la función generateToken
-jest.mock('../../../config/jwt.config', () => ({
-  generateToken: jest.fn().mockReturnValue('mock-jwt-token'),
-}));
+jest.mock('bcrypt');
+jest.mock('../../../config/jwt.config');
 
 describe('AuthService', () => {
-  let authService: AuthService;
+    let authService: AuthService;
+    let userRepositoryMock: any;
 
-  beforeEach(() => {
-    authService = new AuthService(); // Inicializamos el servicio
-  });
-
-  describe('login', () => {
-    it('should login successfully and return a token', async () => {
-      const mockUser = {
-        id: 1,
-        email: 'test@example.com',
-        password: 'hashedpassword',
-        userRoles: [{ role: { name: 'Barbero' } }],
-        barberState: 'Disponible',
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
-
-      // Mockeamos el comportamiento del repositorio de usuario
-      UserRepository.findOne.mockResolvedValue(mockUser);
-
-      // Forzamos el tipo para que jest reconozca el mock como una promesa
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true); // Aseguramos que bcrypt compare devuelve true
-
-      const response = await authService.login('test@example.com', 'password123');
-
-      expect(response.success).toBe(true);
-      expect(response.token).toBe('mock-jwt-token');
-      expect(response.user.email).toBe('test@example.com');
-      expect(response.user.roles).toEqual(['Barbero']);
+    beforeEach(() => {
+        authService = new AuthService();
+        userRepositoryMock = {
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+        };
+        authService['userRepository'] = userRepositoryMock; // Reemplazar el repositorio real por el mock
     });
 
-    it('should throw error when user not found', async () => {
-      UserRepository.findOne.mockResolvedValue(null); // Simulamos que el usuario no existe
+    describe('login', () => {
+        it('should return a token and user data for valid credentials', async () => {
+            const email = 'test@example.com';
+            const password = 'testPassword';
+            const user = {
+                id: 1,
+                email,
+                password: await bcrypt.hash(password, 10),
+                userRoles: [{ role: { name: 'Cliente' } }],
+                barberState: null,
+                created_at: new Date(),
+                updated_at: new Date(),
+            };
 
-      await expect(authService.login('invalid@example.com', 'password123'))
-        .rejects
-        .toThrow('Usuario no encontrado');
+            userRepositoryMock.findOne.mockResolvedValue(user);
+            (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+            (generateToken as jest.Mock).mockReturnValue('token');
+
+            const result = await authService.login(email, password);
+
+            expect(result).toEqual({
+                success: true,
+                token: 'token',
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    roles: ['Cliente'],
+                    barber_state: user.barberState,
+                    created_at: user.created_at,
+                    updated_at: user.updated_at,
+                },
+            });
+        });
+
+        it('should throw an error if user is not found', async () => {
+            const email = 'notfound@example.com';
+            const password = 'testPassword';
+
+            userRepositoryMock.findOne.mockResolvedValue(null);
+
+            await expect(authService.login(email, password)).rejects.toThrow('Usuario no encontrado');
+        });
+
+        it('should throw an error if password is invalid', async () => {
+            const email = 'test@example.com';
+            const password = 'wrongPassword';
+            const user = {
+                id: 1,
+                email,
+                password: await bcrypt.hash('correctPassword', 10),
+                userRoles: [{ role: { name: 'Cliente' } }],
+                barberState: null,
+                created_at: new Date(),
+                updated_at: new Date(),
+            };
+
+            userRepositoryMock.findOne.mockResolvedValue(user);
+            (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+            await expect(authService.login(email, password)).rejects.toThrow('Contraseña inválida');
+        });
     });
 
-    it('should throw error when password is invalid', async () => {
-      const mockUser = { password: 'hashedpassword' };
-      UserRepository.findOne.mockResolvedValue(mockUser);
+    describe('register', () => {
+        it('should successfully register a new user', async () => {
+            const registerDto: RegisterDto = {
+                email: 'newuser@example.com',
+                password: 'newPassword',
+                role: 'Cliente',
+                firstName: 'New',
+                lastName: 'User ',
+                phone: '123456789',
+                profileImage: 'image_url',
+                countryId: 1,
+                departmentId: 1,
+                latitude: 0,
+                longitude: 0,
+            };
 
-      // Simulamos que la contraseña es incorrecta
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+            // Mock de los repositorios
+            userRepositoryMock.findOne.mockResolvedValue(null); // No existe el usuario
+            userRepositoryMock.create.mockReturnValue(registerDto);
+            userRepositoryMock.save.mockResolvedValue({ ...registerDto, id: 1 });
 
-      await expect(authService.login('test@example.com', 'wrongpassword'))
-        .rejects
-        .toThrow('Contraseña inválida');
+            (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+            (generateToken as jest.Mock).mockReturnValue('token');
+
+            const result = await authService.register(registerDto);
+
+            expect(result).toEqual({
+                success: true,
+                token: 'token',
+                user: {
+                    id: 1,
+                    email: registerDto.email,
+                    roles: ['Cliente'],
+                    barber_state: null ,
+                    created_at: expect.any(Date),
+                    updated_at: expect.any(Date),
+                },
+            });
+        });
+
+        it('should throw an error if the email is already registered', async () => {
+            const registerDto: RegisterDto = {
+                email: 'existinguser@example.com',
+                password: 'password',
+                role: 'Cliente',
+                firstName: 'Existing',
+                lastName: 'User ',
+                phone: '987654321',
+                profileImage: 'image_url',
+                countryId: 1,
+                departmentId: 1,
+                latitude: 0,
+                longitude: 0,
+            };
+
+            userRepositoryMock.findOne.mockResolvedValue({}); // Simulando que el usuario ya existe
+
+            await expect(authService.register(registerDto)).rejects.toThrow('El email ya está registrado');
+        });
+
+        it('should throw an error if the role is invalid', async () => {
+            const registerDto: RegisterDto = {
+                email: 'newuser@example.com',
+                password: 'newPassword',
+                role: 'InvalidRole', // Rol no válido
+                firstName: 'New',
+                lastName: 'User ',
+                phone: '123456789',
+                profileImage: 'image_url',
+                countryId: 1,
+                departmentId: 1,
+                latitude: 0,
+                longitude: 0,
+            };
+
+            await expect(authService.register(registerDto)).rejects.toThrow('Rol no válido');
+        });
     });
-  });
-
-  describe('register', () => {
-    it('should register a new user successfully', async () => {
-      const registerDto = {
-        email: 'newuser@example.com',
-        password: 'password123',
-        role: 'Barbero',
-        firstName: 'John',
-        lastName: 'Doe',
-        phone: '123456789',
-        profileImage: 'profile.jpg',
-        latitude: 40.7128,
-        longitude: -74.0060,
-        countryId: 1,
-        departmentId: 1,
-      };
-
-      const mockUser = {
-        id: 1,
-        email: 'newuser@example.com',
-        password: 'hashedpassword',
-        userRoles: [{ role: { name: 'Barbero' } }],
-        barberState: 'Disponible',
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
-
-      const mockRole = { name: 'Barbero' };
-      const mockBarberStatus = { id: 1, name: 'Disponible' };
-      const mockCountry = { id: 1, name: 'Colombia' };
-      const mockDepartment = { id: 1, name: 'Cundinamarca' };
-
-      // Mock de los repositorios de User, Role, BarberStatus, Country y Department
-      UserRepository.findOne.mockResolvedValue(null); // No existe un usuario con este email
-      UserRepository.create.mockReturnValue(mockUser);
-
-      // Mock de las otras dependencias (roles, barberState, country, department)
-      // Puedes extender esto para cubrir más casos
-      jest.spyOn(authService, 'getRole').mockResolvedValue(mockRole);
-      jest.spyOn(authService, 'getBarberState').mockResolvedValue(mockBarberStatus);
-      jest.spyOn(authService, 'getCountry').mockResolvedValue(mockCountry);
-      jest.spyOn(authService, 'getDepartment').mockResolvedValue(mockDepartment);
-
-      // Hash de la contraseña (simulamos que bcrypt.hash funciona)
-      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedpassword');
-
-      const response = await authService.register(registerDto);
-
-      expect(response.success).toBe(true);
-      expect(response.token).toBe('mock-jwt-token');
-      expect(response.user.email).toBe('newuser@example.com');
-    });
-
-    it('should throw error if email is already registered', async () => {
-      const registerDto = {
-        email: 'existinguser@example.com',
-        password: 'password123',
-        role: 'Barbero',
-        firstName: 'John',
-        lastName: 'Doe',
-        phone: '123456789',
-        profileImage: 'profile.jpg',
-        latitude: 40.7128,
-        longitude: -74.0060,
-        countryId: 1,
-        departmentId: 1,
-      };
-
-      // Simulamos que ya existe un usuario con el mismo email
-      UserRepository.findOne.mockResolvedValue({
-        email: 'existinguser@example.com',
-        password: 'hashedpassword',
-      });
-
-      await expect(authService.register(registerDto))
-        .rejects
-        .toThrow('El email ya está registrado');
-    });
-
-    // Puedes agregar más pruebas para el caso de roles inválidos, errores en el proceso de registro, etc.
-  });
 });
